@@ -8,10 +8,7 @@ django-forms-bootstrap==3.0.1
 Markdown==2.6.5
 
 # For filters
-PyExecJS==1.1.0
-
-# For reaching out to OpenJUB
-requests==2.12.3
+pre-js-py==1.1.0
 
 # For authing against dreamjub
 django-allauth==0.29.0
