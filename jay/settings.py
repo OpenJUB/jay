@@ -26,7 +26,15 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+
     'django_forms_bootstrap',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dreamjub.providers.oauth',
+
     'filters',
     'settings',
     'users',
@@ -66,12 +74,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'jay.wsgi.application'
 
 # OpenJUB auth
-AUTHENTICATION_BACKENDS = ( 'django.contrib.auth.backends.ModelBackend',
-                            'users.ojub_auth.OjubBackend')
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 # Default after login redirect
 # These are named URL routes
-LOGIN_URL = "login"
+LOGIN_URL = "accounts/dreamjub/login"
 LOGOUT_URL = "logout"
 LOGIN_REDIRECT_URL = "home"
 
@@ -93,3 +103,6 @@ STATICFILES_DIRS = (
 )
 
 STATIC_URL = '/static/'
+SITE_ID = 1
+
+ACCOUNT_EMAIL_VERIFICATION = "none"

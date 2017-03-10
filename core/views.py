@@ -4,8 +4,8 @@ from django.shortcuts import render
 
 from settings.models import VotingSystem
 from votes.models import Vote, Status
-from filters.models import UserFilter
-from users.models import UserProfile
+from jay.utils import get_user_details
+
 
 # Create your views here.
 def home(request):
@@ -15,8 +15,10 @@ def home(request):
     systems = VotingSystem.objects.all()
 
     if request.user.is_authenticated():
-        details = json.loads(request.user.profile.details)
-        votes_shown = [v for v in votes if v.filter.matches(details)]
+        details = get_user_details(request.user)
+
+        votes_shown = [v for v in votes if v.filter.matches(json.loads(
+            details))]
 
         ctx["vote_list_title"] = "Your votes"
 
