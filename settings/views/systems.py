@@ -52,7 +52,6 @@ def system_edit(request, system_id):
         except Exception as e:
             ctx['alert_head'] = 'Saving failed'
             ctx['alert_text'] = 'Invalid data submitted'
-            print(e)
 
             return render(request, SETTINGS_SYSTEMS_EDIT_TEMPLATE, ctx)
 

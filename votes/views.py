@@ -21,14 +21,15 @@ from django.utils.decorators import method_decorator
 
 from votes.models import Vote, Option, Status, ActiveVote, PassiveVote
 from filters.models import UserFilter
-from users.models import UserProfile, Admin
+from users.models import Admin
 from settings.models import VotingSystem
 
 from django.contrib.auth.models import User
 
+from jay import utils
 from votes.forms import EditVoteForm, EditVoteFilterForm, \
-    EditVoteOptionsForm, GetVoteOptionForm, EditVoteOptionForm, PasswordForm, \
-    EditScheduleForm, AdminSelectForm
+    EditVoteOptionsForm, GetVoteOptionForm, EditVoteOptionForm, \
+    PasswordForm, EditScheduleForm, AdminSelectForm
 
 VOTE_ERROR_TEMPLATE = "vote/vote_msg.html"
 VOTE_RESULT_TEMPLATE = "vote/vote_result.html"
@@ -52,7 +53,7 @@ def system_home(request, system_name):
 
     all_votes = Vote.objects.filter(system=vs)
 
-    if request.user.is_authenticated() and vs.isAdmin(request.user.profile):
+    if request.user.is_authenticated() and vs.isAdmin(request.user):
         ctx['votes'] = all_votes
         ctx['results'] = Vote.objects.filter(system=vs,
                                              status__stage__in=[Status.PUBLIC,
@@ -81,7 +82,7 @@ def admin(request, system_name, alert_type=None, alert_head=None,
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
 
     # raise an error if the user trying to access is not an admin
-    if not vs.isAdmin(request.user.profile):
+    if not vs.isAdmin(request.user):
         raise PermissionDenied
 
     ctx['vs'] = vs
@@ -112,7 +113,7 @@ def admin_add(request, system_name):
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
 
     # raise an error if the user trying to access is not an admin
-    if not vs.isAdmin(request.user.profile):
+    if not vs.isAdmin(request.user):
         raise PermissionDenied
 
     try:
@@ -151,7 +152,7 @@ def admin_remove(request, system_name):
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
 
     # raise an error if the user trying to access is not an admin
-    if not vs.isAdmin(request.user.profile):
+    if not request.user.isAdmin(request.user):
         raise PermissionDenied
 
     try:
@@ -228,6 +229,7 @@ def get_vote_props(ctx, vote):
 
 
 def vote_edit_context(request, system_name, vote_name):
+    from jay import utils
     """
         Returns context and basic parameters for vote editing.
     """
@@ -237,14 +239,14 @@ def vote_edit_context(request, system_name, vote_name):
     vote.touch()
 
     # raise an error if the user trying to access is not an admin
-    if not system.isAdmin(request.user.profile):
+    if not system.isAdmin(request.user):
         raise PermissionDenied
 
     # make a context
     ctx = {}
 
     # get all the systems this user can edit
-    (admin_systems, other_systems) = request.user.profile.getSystems()
+    (admin_systems, other_systems) = VotingSystem.splitSystemsFor(request.user)
 
     # add the vote to the system
     ctx['vote'] = vote
@@ -281,7 +283,7 @@ def vote_add(request, system_name):
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
 
     # raise an error if the user trying to access is not an admin
-    if not vs.isAdmin(request.user.profile):
+    if not vs.isAdmin(request.user):
         raise PermissionDenied
 
     v = Vote()
@@ -311,7 +313,7 @@ def vote_add(request, system_name):
 def vote_delete(request, system_name, vote_name):
     (system, vote, ctx) = vote_edit_context(request, system_name, vote_name)
 
-    if vote.canDelete(request.user.profile):
+    if vote.canDelete(request.user):
         vote.delete()
 
     return redirect('votes:system', system_name=system_name)
@@ -440,18 +442,18 @@ def vote_stage(request, system_name, vote_name):
         if not form.is_valid():
             raise Exception
 
-        # read username + password
-        username = request.user.username
-        password = form.cleaned_data['password']
+        # make sure that the name of the vote has been submitted
+        if form.cleaned_data['password'] != vote_name:
+            raise Exception
 
     except:
-        ctx['alert_head'] = 'Saving failed'
+        ctx['alert_head'] = 'Staging vote failed'
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # set the vote status to public
     try:
-        vote.update_eligibility(username, password)
+        vote.update_eligibility()
 
         vote.status.stage = Status.STAGED
         vote.status.save()
@@ -499,7 +501,6 @@ def vote_time(request, system_name, vote_name):
         public_time = form.cleaned_data["public_time"]
 
     except Exception as e:
-        print(e, form.errors)
         ctx['alert_head'] = 'Saving failed'
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
@@ -547,18 +548,18 @@ def vote_update(request, system_name, vote_name):
         if not form.is_valid():
             raise Exception
 
-        # read username + password
-        username = request.user.username
-        password = form.cleaned_data['password']
+        # make sure that the name of the vote has been submitted
+        if form.cleaned_data['password'] != vote_name:
+            raise Exception
 
     except:
         ctx['alert_head'] = 'Saving failed'
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
-    # set the vote status to public
+    # re-count if eligible
     try:
-        vote.update_eligibility(username, password)
+        vote.update_eligibility()
     except Exception as e:
         ctx['alert_head'] = 'Updating eligibility failed. '
         ctx['alert_text'] = str(e)
@@ -1013,7 +1014,7 @@ def results(request, system_name, vote_name):
     if vote.status.stage != Status.PUBLIC:
         if vote.status.stage == Status.CLOSE and \
                 request.user.is_authenticated():
-            if vote.system.isAdmin(request.user.profile):
+            if vote.system.isAdmin(request.user):
                 ctx['alert_type'] = 'info'
                 ctx['alert_head'] = 'Non-public'
                 ctx['alert_text'] = 'The results are not public yet. You ' \
@@ -1060,7 +1061,7 @@ class VoteView(View):
         # TODO Check status of vote
 
         try:
-            user_details = json.loads(request.user.profile.details)
+            user_details = utils.get_user_details(request.user)
 
             if not filter:
                 ctx['alert_head'] = "No filter given."
@@ -1157,7 +1158,7 @@ class VoteView(View):
             return self.render_error_response(ctx)
 
         try:
-            user_details = json.loads(request.user.profile.details)
+            user_details = utils.get_user_details(request.user)
 
             if not filter:
                 ctx['alert_head'] = "No filter given."

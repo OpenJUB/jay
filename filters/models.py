@@ -8,7 +8,8 @@ from django.core.exceptions import ValidationError
 
 from settings.models import VotingSystem
 
-import filters.forest as forest
+from filters.forest import logic
+from jay import utils
 
 
 # Create your models here.
@@ -23,7 +24,7 @@ class UserFilter(models.Model):
 
     def clean(self):
         try:
-            self.tree = json.dumps(forest.parse_and_simplify(self.value))
+            self.tree = json.dumps(logic.parse(self.value))
         except Exception as e:
             self.tree = None
 
@@ -41,23 +42,29 @@ class UserFilter(models.Model):
         """
 
         try:
-            return forest.matches(json.loads(self.tree), obj)
+            return logic.matches(json.loads(self.tree), obj)
         except Exception as e:
             import sys
             sys.stderr.write(e)
             return False
 
-    def map_matches(self, objs):
+    def count_matches(self, objs):
+        """ Counts the number of objects matching this filter"""
 
-        try:
-            return forest.map_match(json.loads(self.tree), objs)
-        except Exception as e:
-            return False
+        tree = json.loads(self.tree)
+        c = 0
+
+        for obj in objs:
+            try:
+                if logic.matches(tree, obj):
+                    c += 1
+            except:
+                pass
+
+        return c
 
     def canEdit(self, user):
-        """
-            Checks if a user can edit this UserFilter.
-        """
+        """ Checks if a user can edit this UserFilter. """
 
         return self.system.isAdmin(user)
 

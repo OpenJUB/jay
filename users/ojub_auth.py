@@ -1,113 +1,37 @@
 from django.conf import settings
-from django.contrib.auth.models import User
 
-from users.models import UserProfile
+from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2 import BackendApplicationClient
 
-import requests
-
-OPENJUB_BASE = "https://api.jacobs.university/"
+OPENJUB_BASE = "http://localhost:9000/"
 
 
-class OjubBackend(object):
-    """
-    Authenticates credentials against the OpenJUB database.
+def get_all():
+    client = BackendApplicationClient(client_id=settings.DREAMJUB_CLIENT_ID)
+    dreamjub = OAuth2Session(client=client)
+    dreamjub.fetch_token(
+        token_url=settings.DREAMJUB_CLIENT_URL + 'login/o/token/',
+        client_id=settings.DREAMJUB_CLIENT_ID,
+        client_secret=settings.DREAMJUB_CLIENT_SECRET)
 
-    The URL for the server is configured by OPENJUB_BASE in the settings.
+    # iterate over the pages (while there is a next)
+    results = []
+    next = settings.DREAMJUB_CLIENT_URL + 'api/v1/users/'
 
-    This class does not fill in user profiles, this has to be handled
-    in other places
-    """
+    while next:
+        res = dreamjub.get(next)
+        if not res.ok:
+            raise Exception(
+                'Unable to retrieve current list of students, '
+                'please try again later. ')
 
-    def authenticate(self, username=None, password=None):
-        r = requests.post(OPENJUB_BASE + "auth/signin",
-                          data={'username': username, 'password': password})
+        res = res.json()
+        results += res['results']
+        next = res['next'] if 'next' in res else None
 
-        if r.status_code != requests.codes.ok:
-            return None
+        # replace http with https at most one
+        if next is not None and next.startswith('http://') and \
+                settings.DREAMJUB_CLIENT_URL.startswith('https://'):
+            next = next.replace('http://', 'https://', 1)
 
-        resp = r.json()
-
-        uname = resp['user']
-        token = resp['token']
-
-        details = requests.get(OPENJUB_BASE + "user/me",
-                               params={'token': token})
-
-        if details.status_code != requests.codes.ok:
-            print("Could not get user details")
-            return None
-
-        try:
-            user = User.objects.get(username=uname)
-        except User.DoesNotExist:
-            user = User(username=uname)
-
-            user.set_unusable_password()
-
-            # TODO Don't hardcode this
-            if user.username in ["lkuboschek", "twiesing", "jinzhang",
-                                 "rdeliallis"]:
-                user.is_staff = True
-                user.is_superuser = True
-
-            data = details.json()
-
-            user.first_name = data['firstName']
-            user.last_name = data['lastName']
-            user.email = data['email']
-
-            user.save()
-
-        # Make a user profile if there isn't one already
-        try:
-            profile = UserProfile.objects.get(user=user)
-        except UserProfile.DoesNotExist:
-            profile = UserProfile(user=user)
-
-        profile.details = details.text
-        profile.save()
-
-        return user
-
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return None
-
-
-def get_all(username, password):
-    r = requests.post(OPENJUB_BASE + "auth/signin",
-                      data={'username': username, 'password': password})
-
-    if r.status_code != requests.codes.ok:
-        return None
-
-    resp = r.json()
-
-    uname = resp['user']
-    token = resp['token']
-
-    users = []
-
-    TIMEOUT = 60
-
-    request = requests.get(OPENJUB_BASE + "query",
-                           params={'token': token, 'limit': 20000},
-                           timeout=TIMEOUT)
-
-    while True:
-        if request.status_code != requests.codes.ok:
-            return None
-        else:
-            # read json
-            resjson = request.json()
-
-            # load all the users
-            users += resjson["data"]
-
-            # if there was no data or no next field, continue
-            if len(resjson["data"]) == 0 or not resjson["next"]:
-                return users
-            else:
-                request = requests.get(resjson["next"], timeout=TIMEOUT)
+    return results

@@ -10,13 +10,14 @@ from django.http import Http404
 from filters.models import UserFilter
 from filters.forms import NewFilterForm, EditFilterForm, FilterTestForm, \
     FilterTestUserForm
-import filters.forest as forest
 
-import json
+from filters.forest import logic
 
 from votes.models import VotingSystem
 
-from jay.utils import priviliged
+from jay.utils import elevated, is_elevated, get_user_details
+
+import json
 
 FILTER_FOREST_TEMPLATE = "filters/filter_forest.html"
 FILTER_EDIT_TEMPLATE = "filters/filter_edit.html"
@@ -24,10 +25,10 @@ FILTER_TEST_TEMPLATE = "filters/filter_test.html"
 
 
 @login_required
-@priviliged
+@elevated
 def Forest(request, alert_type=None, alert_head=None, alert_text=None):
     # if the user does not have enough priviliges, throw an exception
-    if not request.user.profile.isElevated():
+    if not is_elevated(request.user):
         raise PermissionDenied
 
     # build a new context
@@ -40,7 +41,7 @@ def Forest(request, alert_type=None, alert_head=None, alert_text=None):
         {'url': reverse('filters:forest'), 'text': 'Filters', 'active': True})
     ctx['breadcrumbs'] = bc
 
-    (admin_systems, other_systems) = request.user.profile.getSystems()
+    (admin_systems, other_systems) = VotingSystem.splitSystemsFor(request.user)
 
     # give those to the view
     ctx['admin_systems'] = admin_systems
@@ -79,7 +80,7 @@ def FilterNew(request):
 
     # check if the user can edit it.
     # if not, go back to the overview
-    if not system.isAdmin(request.user.profile):
+    if not system.isAdmin(request.user):
         return Forest(request, alert_head="Creation failed",
                       alert_text="Nice try. You are not allowed to edit "
                                  "this VotingSystem. ")
@@ -115,7 +116,7 @@ def FilterDelete(request, filter_id):
 
     # check if the user can edit it.
     # if not, go back to the overview
-    if not system.isAdmin(request.user.profile):
+    if not system.isAdmin(request.user):
         return Forest(request, alert_head="Deletion failed",
                       alert_text="Nice try. You don't have permissions to "
                                  "delete this filter. ")
@@ -139,7 +140,7 @@ def FilterDelete(request, filter_id):
 
 
 @login_required
-@priviliged
+@elevated
 def FilterEdit(request, filter_id):
     # make a context
     ctx = {}
@@ -149,7 +150,7 @@ def FilterEdit(request, filter_id):
     ctx["filter"] = filter
 
     # check if the user can edit it
-    if not filter.canEdit(request.user.profile):
+    if not filter.canEdit(request.user):
         raise PermissionDenied
 
     # Set up the breadcrumbs
@@ -175,7 +176,7 @@ def FilterEdit(request, filter_id):
 
         # check if we have a valid tree manually
         try:
-            tree = forest.parse(form.cleaned_data['value'])
+            tree = logic.parse(form.cleaned_data['value'])
             if not tree:
                 raise Exception
         except Exception as e:
@@ -207,7 +208,7 @@ def FilterEdit(request, filter_id):
 
 
 @login_required
-@priviliged
+@elevated
 def FilterTest(request, filter_id, obj=None):
     # try and grab the user filter
     filter = get_object_or_404(UserFilter, id=filter_id)
@@ -244,7 +245,7 @@ def FilterTest(request, filter_id, obj=None):
 
 
 @login_required
-@priviliged
+@elevated
 def FilterTestUser(request, filter_id):
     # try and grab the user filter
     filter = get_object_or_404(UserFilter, id=filter_id)
@@ -259,7 +260,8 @@ def FilterTestUser(request, filter_id):
         form = FilterTestUserForm(request.POST)
         if form.is_valid():
             obj = form.cleaned_data["user"]
-            obj = User.objects.filter(username=obj)[0].profile.details
+            obj = json.dumps(get_user_details(
+                User.objects.filter(username=obj)[0]))
     except Exception as e:
         print(e)
         pass

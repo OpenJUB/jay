@@ -1,5 +1,3 @@
-import datetime
-
 from django.utils import timezone
 
 from django.db import models, transaction
@@ -44,18 +42,16 @@ class Vote(models.Model):
         is_restricted_word('machine_name', self.machine_name)
 
     def canEdit(self, user):
-        """
-            Checks if a user can edit this vote.
-        """
-        return user.isAdminFor(
-            self.system) and self.status.stage != Status.PUBLIC
+        """ Checks if a user can edit this vote. """
+
+        return self.system.isAdmin(user) \
+            and self.status.stage != Status.PUBLIC
 
     def canDelete(self, user):
-        """
-            Check if a user can delete this vote.
-        """
-        return user.isAdminFor(
-            self.system) and self.status.stage == Status.INIT
+        """ Checks if a user can delete this vote. """
+
+        return self.system.isAdmin(user) \
+            and self.status.stage == Status.INIT
 
     def canBeModified(self):
         """
@@ -63,27 +59,24 @@ class Vote(models.Model):
         """
         return self.status.stage == Status.INIT
 
-    def update_eligibility(self, username, password):
+    def update_eligibility(self):
+
+        # TODO: Retrieve the API key things
 
         PassiveVote.objects.get_or_create(vote=self, defaults={
             'num_voters': 0,
             'num_eligible': 0})
 
-        if self.filter is not None:
+        if self.filter is None:
             raise Exception("Missing filter. ")
 
         # this will take really long
-        everyone = get_all(username, password)
+        everyone = get_all()
 
         if not everyone:
             raise Exception("Invalid password or something went wrong. ")
 
-        check = self.filter.map_matches(everyone)
-        c = 0
-
-        for b in check:
-            if b:
-                c += 1
+        c = self.filter.count_matches(everyone)
 
         # get or create the passive vote object
         (pv, _) = PassiveVote.objects.get_or_create(vote=self, defaults={
