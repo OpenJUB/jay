@@ -13,21 +13,21 @@ from filters.models import UserFilter
 from users.ojub_auth import get_all
 
 from jay.restricted import is_restricted_word
-from jay import utils
+
 
 # Create your models here.
 class Vote(models.Model):
     system = models.ForeignKey(VotingSystem)
 
-    name = models.CharField(max_length = 64)
-    machine_name = models.SlugField(max_length = 64)
+    name = models.CharField(max_length=64)
+    machine_name = models.SlugField(max_length=64)
 
-    auto_open_options = models.BooleanField(default = False)
+    auto_open_options = models.BooleanField(default=False)
 
-    filter = models.ForeignKey(UserFilter, null = True)
+    filter = models.ForeignKey(UserFilter, null=True)
     status = models.OneToOneField('Status')
 
-    description = models.TextField(blank = True)
+    description = models.TextField(blank=True)
 
     creator = models.ForeignKey(User)
 
@@ -44,16 +44,16 @@ class Vote(models.Model):
         is_restricted_word('machine_name', self.machine_name)
 
     def canEdit(self, user):
-        """
-            Checks if a user can edit this vote.
-        """
-        return utils.is_admin_for(user, self.system) and self.status.stage != Status.PUBLIC
+        """ Checks if a user can edit this vote. """
+
+        return self.system.isAdmin(user) and \
+               self.status.stage != Status.PUBLIC
 
     def canDelete(self, user):
-        """
-            Check if a user can delete this vote.
-        """
-        return utils.is_admin_for(user, self.system) and self.status.stage == Status.INIT
+        """ Checks if a user can delete this vote. """
+
+        return self.system.isAdmin(user) and \
+               self.status.stage == Status.INIT
 
     def canBeModified(self):
         """
@@ -63,7 +63,8 @@ class Vote(models.Model):
 
     def update_eligibility(self, username, password):
 
-        PassiveVote.objects.get_or_create(vote=self, defaults={'num_voters': 0, 'num_eligible': 0})
+        PassiveVote.objects.get_or_create(
+            vote=self, defaults={'num_voters': 0, 'num_eligible': 0})
 
         if self.filter == None:
             raise Exception("Missing filter. ")
@@ -74,7 +75,6 @@ class Vote(models.Model):
         if not everyone:
             raise Exception("Invalid password or something went wrong. ")
 
-
         check = self.filter.map_matches(everyone)
         c = 0
 
@@ -83,14 +83,14 @@ class Vote(models.Model):
                 c += 1
 
         # get or create the passive vote object
-        (pv, _) = PassiveVote.objects.get_or_create(vote=self, defaults={'num_voters': 0, 'num_eligible': 0})
+        (pv, _) = PassiveVote.objects.get_or_create(
+            vote=self, defaults={'num_voters': 0, 'num_eligible': 0})
 
         # update the eligibility number
         pv.num_eligible = c
 
         # and save
         pv.save()
-
 
     # Touch yourself, we lack self-assurance
     def touch(self):
@@ -116,13 +116,12 @@ class Vote(models.Model):
 
         self.status.save()
 
-
-
     """
 
     Converts the ActiveVotes on this vote to a count on the PassiveVote of this Vote
 
     """
+
     def close(self):
         try:
             pasv = self.passivevote
@@ -146,7 +145,6 @@ class Vote(models.Model):
         for i, v in enumerate(self.option_set.order_by("number")):
             v.number = i
             v.save()
-
 
     @transaction.atomic
     def deleteOption(self, option):
@@ -191,11 +189,10 @@ class Vote(models.Model):
         num = self.option_set.count()
 
         # create a new option
-        opt = Option(vote=self, number = num, name = "Option #"+str(num + 1))
+        opt = Option(vote=self, number=num, name="Option #" + str(num + 1))
 
         # and save it
         opt.save()
-
 
     @transaction.atomic
     def moveDownOption(self, option):
@@ -254,21 +251,20 @@ class Vote(models.Model):
         option.save()
 
 
-
 class Option(models.Model):
     vote = models.ForeignKey(Vote)
 
     number = models.IntegerField()
 
-    name = models.CharField(max_length = 64)
-    description = models.TextField(blank = True)
+    name = models.CharField(max_length=64)
+    description = models.TextField(blank=True)
 
-    picture_url = models.URLField(blank = True)
+    picture_url = models.URLField(blank=True)
 
-    personal_link = models.URLField(blank = True)
-    link_name = models.CharField(blank = True, max_length = 16)
+    personal_link = models.URLField(blank=True)
+    link_name = models.CharField(blank=True, max_length=16)
 
-    count = models.IntegerField(default = 0, blank = True)
+    count = models.IntegerField(default=0, blank=True)
 
     class Meta():
         unique_together = (("vote", "number"))
@@ -281,6 +277,7 @@ class Option(models.Model):
             Checks if a user can edit this option.
         """
         return self.vote.canEdit(user)
+
 
 class Status(models.Model):
     INIT = 'I'
@@ -297,13 +294,14 @@ class Status(models.Model):
         (PUBLIC, 'Results public')
     )
 
-    open_time = models.DateTimeField(blank = True, null = True)
-    close_time = models.DateTimeField(blank = True, null = True)
-    public_time = models.DateTimeField(blank = True, null = True)
-    stage = models.CharField(max_length = 1, choices = STAGES, default = INIT)
+    open_time = models.DateTimeField(blank=True, null=True)
+    close_time = models.DateTimeField(blank=True, null=True)
+    public_time = models.DateTimeField(blank=True, null=True)
+    stage = models.CharField(max_length=1, choices=STAGES, default=INIT)
 
     def __str__(self):
         return self.stage
+
 
 class ActiveVote(models.Model):
     vote = models.ForeignKey(Vote)
@@ -313,6 +311,7 @@ class ActiveVote(models.Model):
     def __str__(self):
         return u'%s voted for %s' % (self.user, self.vote)
 
+
 class PassiveVote(models.Model):
     vote = models.OneToOneField(Vote)
 
@@ -321,6 +320,7 @@ class PassiveVote(models.Model):
 
     def __str__(self):
         return u'%s of %s voted' % (self.num_voters, self.num_eligible)
+
 
 admin.site.register(Vote)
 admin.site.register(Option)

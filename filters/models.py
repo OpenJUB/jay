@@ -11,6 +11,7 @@ from settings.models import VotingSystem
 from filters.forest import logic
 from jay import utils
 
+
 # Create your models here.
 class UserFilter(models.Model):
     system = models.ForeignKey(VotingSystem)
@@ -29,7 +30,9 @@ class UserFilter(models.Model):
 
         if self.tree == None:
             raise ValidationError({
-                'value': ValidationError('Value for \'value\' invalid: Can not parse into a valid logical tree. ', code='invalid')
+                'value': ValidationError(
+                    'Value for \'value\' invalid: Can not parse into a valid logical tree. ',
+                    code='invalid')
             })
 
     def matches(self, obj):
@@ -53,13 +56,13 @@ class UserFilter(models.Model):
             return False
 
     def canEdit(self, user):
-        """
-            Checks if a user can edit this UserFilter.
-        """
-        return utils.is_admin_for(user, self.system)
+        """ Checks if a user can edit this UserFilter. """
+
+        return self.system.isAdmin(user)
 
     def get_absolute_url(self):
         from django.core.urlresolvers import reverse
-        return reverse('filters:edit', kwargs={'filter_id':self.id})
+        return reverse('filters:edit', kwargs={'filter_id': self.id})
+
 
 admin.site.register(UserFilter)

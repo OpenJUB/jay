@@ -25,6 +25,7 @@ from settings.models import VotingSystem
 
 from django.contrib.auth.models import User
 
+from jay import utils
 from votes.forms import EditVoteForm, EditVoteFilterForm, EditVoteOptionsForm, GetVoteOptionForm, EditVoteOptionForm, PasswordForm, EditScheduleForm, AdminSelectForm
 
 VOTE_ERROR_TEMPLATE = "vote/vote_msg.html"
@@ -73,7 +74,7 @@ def admin(request, system_name, alert_type=None, alert_head=None, alert_text=Non
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
 
     # raise an error if the user trying to access is not an admin
-    if not vs.isAdmin(request.user.profile):
+    if not vs.isAdmin(request.user):
         raise PermissionDenied
 
     ctx['vs'] = vs
@@ -106,7 +107,7 @@ def admin_add(request, system_name):
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
 
     # raise an error if the user trying to access is not an admin
-    if not vs.isAdmin(request.user.profile):
+    if not vs.isAdmin(request.user):
         raise PermissionDenied
 
     try:
@@ -139,7 +140,7 @@ def admin_remove(request, system_name):
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
 
     # raise an error if the user trying to access is not an admin
-    if not vs.isAdmin(request.user.profile):
+    if not request.user.isAdmin(request.user):
         raise PermissionDenied
 
     try:
@@ -222,7 +223,7 @@ def vote_edit_context(request, system_name, vote_name):
     ctx = {}
 
     # get all the systems this user can edit
-    (admin_systems, other_systems) = utils.get_all_systems(request.user)
+    (admin_systems, other_systems) = VotingSystem.splitSystemsFor(request.user)
 
     # add the vote to the system
     ctx['vote'] = vote
@@ -286,7 +287,7 @@ def vote_add(request, system_name):
 def vote_delete(request, system_name, vote_name):
     (system, vote, ctx) = vote_edit_context(request, system_name, vote_name)
 
-    if vote.canDelete(request.user.profile):
+    if vote.canDelete(request.user):
         vote.delete()
 
     return redirect('votes:system', system_name=system_name)
@@ -949,7 +950,7 @@ def results(request, system_name, vote_name):
 
     if vote.status.stage != Status.PUBLIC:
         if vote.status.stage == Status.CLOSE and request.user.is_authenticated():
-            if vote.system.isAdmin(request.user.profile):
+            if vote.system.isAdmin(request.user):
                 ctx['alert_type'] = 'info'
                 ctx['alert_head'] = 'Non-public'
                 ctx['alert_text'] = 'The results are not public yet. You can see the results because you are admin.'
@@ -991,7 +992,7 @@ class VoteView(View):
         # TODO Check status of vote
 
         try:
-            user_details = json.loads(request.user.profile.details)
+            user_details = utils.get_user_details(request.user)
 
             if not filter:
                 ctx['alert_head'] = "No filter given."
@@ -1080,7 +1081,7 @@ class VoteView(View):
             return self.render_error_response(ctx)
 
         try:
-            user_details = json.loads(request.user.profile.details)
+            user_details = utils.get_user_details(request.user)
 
             if not filter:
                 ctx['alert_head'] = "No filter given."
