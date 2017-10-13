@@ -8,4 +8,4 @@ see [doc/](doc) for minimal developer documentation
 
 ## License
 
-Jay is &copy; 2015-16 Leonhard Kuboschek, Tom Wiesing, Jinbo Zhang & Rubin Deliallisi and licensed under MIT license. See [LICENSE.md](LICENSE.md) for details.
+Jay is &copy; 2015-17 Leonhard Kuboschek, Tom Wiesing & Contributors. Licensed under MIT license. See [LICENSE.md](LICENSE.md) for details.
