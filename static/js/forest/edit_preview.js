@@ -1,6 +1,6 @@
 $(function(){
   // find all the fields
-  var value = $("#value");
+  var value = $("#editForm").find("input").eq(2);
   var submit = $("#submit");
   var preview = $("#preview");
   var error = $("#error");
