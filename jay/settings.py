@@ -79,6 +79,11 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+# the token and secret for oauth
+DREAMJUB_CLIENT_URL = 'http://localhost:9000/'
+DREAMJUB_CLIENT_ID = '7ZYpfROz1AEUDbsTQJJuy4RNL8LVSRTONOAXcjm4'
+DREAMJUB_CLIENT_SECRET = 'EkeeT0GgOGOQRHbgFE4n1RERxVNSiOD1HZ80TRfERiWj3cK1hZoTodH0kv8tz3gbqk53YMDuUFAsoaJkMEg1OM1RrZyd1xaYUGv5CtmHrpmJavc2JvRDNUAkFJgORpUW'
+
 # Default after login redirect
 # These are named URL routes
 LOGIN_URL = "accounts/dreamjub/login"

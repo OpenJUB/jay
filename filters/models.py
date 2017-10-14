@@ -47,13 +47,20 @@ class UserFilter(models.Model):
             sys.stderr.write(e)
             return False
 
-    def map_matches(self, objs):
+    def count_matches(self, objs):
+        """ Counts the number of objects matching this filter"""
 
-        try:
-            tree = json.loads(self.tree)
-            return list(lambda o: logic.matches(tree, o), objs)
-        except Exception as e:
-            return False
+        tree = json.loads(self.tree)
+        c = 0
+
+        for obj in objs:
+            try:
+                if logic.matches(tree, obj):
+                    c += 1
+            except:
+                pass
+
+        return c
 
     def canEdit(self, user):
         """ Checks if a user can edit this UserFilter. """

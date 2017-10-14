@@ -10,6 +10,7 @@ see [doc/](doc) for minimal developer documentation
 
 1. Configure database and apply migrations
 2. Create a Social Application pointing to `dreamjub`
+3. update `DREAMJUB_CLIENT_ID` and `DREAMJUB_CLIENT_SECRET` variables
 
 ## License
 

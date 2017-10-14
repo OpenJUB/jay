@@ -18,8 +18,6 @@ def render_full(src, inp):
     # make a layout with the given object
     layout = layouter.layouter(tree, obj)
 
-    print(layout)
-
     # and finally render it
     render = renderer.renderer(layout)
 

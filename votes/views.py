@@ -407,19 +407,19 @@ def vote_stage(request, system_name, vote_name):
         if not form.is_valid():
             raise Exception
 
-        # read username + password
-        username = request.user.username
-        password = form.cleaned_data['password']
+        # make sure that the name of the vote has been submitted
+        if form.cleaned_data['password'] != vote_name:
+            raise Exception
 
     except:
-        ctx['alert_head'] = 'Saving failed'
+        ctx['alert_head'] = 'Staging vote failed'
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
 
     # set the vote status to public
     try:
-        vote.update_eligibility(username, password)
+        vote.update_eligibility()
 
 
         vote.status.stage = Status.STAGED
@@ -467,7 +467,6 @@ def vote_time(request, system_name, vote_name):
         public_time = form.cleaned_data["public_time"]
 
     except Exception as e:
-        print(e, form.errors)
         ctx['alert_head'] = 'Saving failed'
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
@@ -515,9 +514,9 @@ def vote_update(request, system_name, vote_name):
         if not form.is_valid():
             raise Exception
 
-        # read username + password
-        username = request.user.username
-        password = form.cleaned_data['password']
+        # make sure that the name of the vote has been submitted
+        if form.cleaned_data['password'] != vote_name:
+            raise Exception
 
     except:
         ctx['alert_head'] = 'Saving failed'
@@ -525,9 +524,9 @@ def vote_update(request, system_name, vote_name):
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
 
-    # set the vote status to public
+    # re-count if eligible
     try:
-        vote.update_eligibility(username, password)
+        vote.update_eligibility()
     except Exception as e:
         ctx['alert_head'] = 'Updating eligibility failed. '
         ctx['alert_text'] = str(e)
