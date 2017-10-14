@@ -30,7 +30,7 @@ urlpatterns = [
     url(r'^$', home, name="home"),
 
     # django admin
-    url(r'^djangoadmin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
 
     # Static stuff
     url(r'^imprint/$', TemplateView.as_view(template_name="base/imprint.html"), name="imprint"),
