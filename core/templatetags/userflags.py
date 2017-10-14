@@ -11,5 +11,11 @@ def getAdminSystems(user):
 
 
 @register.filter()
+def canEdit(user, system):
+    print('checking', system, user)
+    return system.canEdit(user)
+
+
+@register.filter()
 def isSuperAdmin(user):
     return utils.is_superadmin(user)

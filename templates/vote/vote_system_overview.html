@@ -1,6 +1,7 @@
 {% extends "base/base.html" %}
 
 {% load staticfiles %}
+{% load userflags %}
 
 {% block page_title %}Voting Systems - Overview - {{vs.simple_name | escape}}{% endblock %}
 
@@ -8,9 +9,13 @@
   <div class="row">
     <div class="col-sm-12">
       <h1>{{ vs.simple_name }} <small>Votes and Results</small>
-        <a class="btn btn-xs btn-default" href="{% url 'votes:admins' system_name=vs.machine_name %}">
-          <span class="glyphicon glyphicon-pencil"></span>&nbsp;Manage admins
-        </a>
+          {% with isAdmin=user|canEdit:vs %}
+              {% if isAdmin %}
+                <a class="btn btn-xs btn-default" href="{% url 'votes:admins' system_name=vs.machine_name %}">
+                  <span class="glyphicon glyphicon-pencil"></span>&nbsp;Manage admins
+                </a>
+              {% endif %}
+          {% endwith %}
       </h1>
     </div>
   </div>
@@ -26,7 +31,7 @@
     <div class="col-sm-12">
       <div class="alert alert-{{ alert_type | default:"danger"}}">
         <strong>{{ alert_head | default:"Something happened."}}</strong>
-        {{ alert_text | default:"An internal error occured." }}
+        {{ alert_text | default:"An internal error occured. " }}
       </div>
     </div>
   </div><!-- row -->
