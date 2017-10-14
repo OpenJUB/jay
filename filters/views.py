@@ -6,9 +6,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
 from django.http import Http404
+from django.views.decorators.http import require_POST
 
 from filters.models import UserFilter
-from filters.forms import NewFilterForm, EditFilterForm, FilterTestForm, \
+from filters.forms import NewFilterForm, UserFilterForm, FilterTestForm, \
     FilterTestUserForm
 
 from filters.forest import logic
@@ -95,7 +96,8 @@ def FilterNew(request):
         newFilter.clean()
         newFilter.save()
     except:
-        return Forest(request, alert_head="Unable to store new user object. ")
+        return Forest(request,
+                      alert_head="Unable to store new filter object. ")
 
     # and redirect to the edit page
     return redirect(
@@ -103,11 +105,8 @@ def FilterNew(request):
 
 
 @login_required
+@require_POST
 def FilterDelete(request, filter_id):
-    # we need some post data, otherwise it wont work.
-    if request.method != "POST":
-        raise Http404
-
     # try and grab the user filter
     filter = get_object_or_404(UserFilter, id=filter_id)
 
@@ -157,53 +156,23 @@ def FilterEdit(request, filter_id):
     bc = []
     bc.append({'url': reverse('home'), 'text': 'Home'})
     bc.append({'url': reverse('filters:forest'), 'text': 'Filters'})
-    bc.append({'url': filter.get_absolute_url(), 'text': filter.name,
-               'active': True})
+    bc.append(
+        {'url': filter.get_absolute_url(), 'text': filter.name,
+         'active': True})
 
     ctx['breadcrumbs'] = bc
 
-    if request.method == "POST":
-        # parse the post data from the form
-        try:
-            form = EditFilterForm(request.POST)
-
-            if not form.is_valid():
-                raise Exception
-        except:
-            ctx['alert_head'] = 'Saving failed'
-            ctx['alert_text'] = 'Invalid data submitted'
-            return render(request, FILTER_EDIT_TEMPLATE, ctx)
-
-        # check if we have a valid tree manually
-        try:
-            tree = logic.parse(form.cleaned_data['value'])
-            if not tree:
-                raise Exception
-        except Exception as e:
-            ctx['alert_head'] = 'Saving failed'
-            ctx['alert_text'] = str(e)
-            return render(request, FILTER_EDIT_TEMPLATE, ctx)
-
-        # write the name and value, then save it in the database
-        try:
-            # store the name and value
-            filter.name = form.cleaned_data['name']
-            filter.value = form.cleaned_data['value']
-
-            # and try to clean + save
-            filter.clean()
+    # and save using the form if possible
+    if request.method == 'POST':
+        form = UserFilterForm(request.POST, instance=filter)
+        if form.is_valid():
+            filter = form.save(commit=False)
             filter.save()
-        except Exception as e:
-            ctx['alert_head'] = 'Saving failed'
-            ctx['alert_text'] = str(e)
-            return render(request, FILTER_EDIT_TEMPLATE, ctx)
+            return redirect('filters:edit', filter_id=filter.id)
+    else:
+        form = UserFilterForm(instance=filter)
 
-        # be done
-        ctx['alert_type'] = 'success'
-        ctx['alert_head'] = 'Saving suceeded'
-        ctx['alert_text'] = 'Filter saved'
-
-    # render all the stuff
+    ctx['form'] = form
     return render(request, FILTER_EDIT_TEMPLATE, ctx)
 
 
@@ -260,8 +229,8 @@ def FilterTestUser(request, filter_id):
         form = FilterTestUserForm(request.POST)
         if form.is_valid():
             obj = form.cleaned_data["user"]
-            obj = json.dumps(get_user_details(
-                User.objects.filter(username=obj)[0]))
+            obj = json.dumps(
+                get_user_details(User.objects.filter(username=obj)[0]))
     except Exception as e:
         print(e)
         pass
