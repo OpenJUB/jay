@@ -24,6 +24,8 @@ class VotingSystem(models.Model):
 
     def isAdmin(self, user):
         """ Checks if a user is an administrator for this voting system. """
+        if user.is_anonymous:
+            return False
         return self.canEdit(user) or \
                Admin.objects.filter(system=self, user=user).exists()
 
@@ -34,6 +36,8 @@ class VotingSystem(models.Model):
         # if a user is a super admin all of them
         if is_superadmin(user):
             return VotingSystem.objects.all()
+        if user.is_anonymous:
+            return VotingSystem.objects.none()
 
         return VotingSystem.objects.filter(admin__user=user)
 
@@ -44,6 +48,10 @@ class VotingSystem(models.Model):
         # if a user is a super admin, return (all, none)
         if is_superadmin(user):
             return VotingSystem.objects.all(), VotingSystem.objects.none()
+
+        # if are anonymous return (none, all)
+        if user.is_anonymous:
+            return VotingSystem.objects.none(), VotingSystem.objects.all()
 
         # else we need two quieries
         administered = VotingSystem.objects.filter(admin__user=user)
