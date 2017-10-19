@@ -86,8 +86,8 @@ DREAMJUB_CLIENT_SECRET = 'EkeeT0GgOGOQRHbgFE4n1RERxVNSiOD1HZ80TRfERiWj3cK1hZoTod
 
 # Default after login redirect
 # These are named URL routes
-LOGIN_URL = "accounts/dreamjub/login"
-LOGOUT_URL = "logout"
+LOGIN_URL = "/accounts/dreamjub/login"
+LOGOUT_URL = "/logout"
 LOGIN_REDIRECT_URL = "home"
 
 # Internationalization
