@@ -17,8 +17,7 @@ def home(request):
     if request.user.is_authenticated():
         details = get_user_details(request.user)
 
-        votes_shown = [v for v in votes if v.filter.matches(json.loads(
-            details))]
+        votes_shown = [v for v in votes if v.filter.matches(details)]
 
         ctx["vote_list_title"] = "Your votes"
 
