@@ -1,10 +1,7 @@
 from django.conf import settings
 
-import json
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
-
-OPENJUB_BASE = "http://localhost:9000/"
 
 
 def get_all():
@@ -29,5 +26,9 @@ def get_all():
         res = res.json()
         results += res['results']
         next = res['next'] if 'next' in res else None
+
+        # replace http with https at most one
+        if next is not None and next.startswith('http://') and settings.DREAMJUB_CLIENT_URL.startswith('https://'):
+            next = next.replace('http://', 'https://', 1)
 
     return results
