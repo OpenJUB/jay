@@ -1,0 +1,40 @@
+{% extends "socialaccount/base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Social Network Login Failure" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Social Network Login Failure" %}</h1>
+
+<p>{% trans "An error occurred while attempting to login via your social network account." %}</p>
+{% endblock %}
+
+
+{% extends "base/base.html" %}
+
+{% load staticfiles %}
+
+{% block page_title %}Login Failure{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-sm-12">
+        <div class="jumbotron">
+            <h1>Login Failure</h1>
+            <p>
+                We are very sorry to say, but an unexpected error occured while trying to login.
+                Please tell the smart people the following details:
+
+                <div class="well">
+                Error: {{ error | safe }}
+                Exception: {{ exception | safe }}
+                </div>
+            </p>
+            <p><a class="btn btn-primary btn-lg" href="{% url "account_login" %}" role="button">Try again</a></p>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

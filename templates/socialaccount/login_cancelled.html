@@ -1,0 +1,24 @@
+{% extends "base/base.html" %}
+
+{% load staticfiles %}
+
+{% block page_title %}Login Cancelled{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-sm-12">
+        <div class="jumbotron">
+            <h1>Login Cancelled</h1>
+            <p>
+                You decided to cancel logging in to Jay using Dreamjub.
+                Logging into the voting system is required to vote or perform other actions.
+                The login is used only to check if you are eligible for a vote, and to make sure you vote only once.
+            </p>
+            <p><a class="btn btn-primary btn-lg" href="{% url "account_login" %}" role="button">Try again</a></p>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock %}
