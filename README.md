@@ -1,6 +1,6 @@
 # Jay
 
-[![Build Status](https://travis-ci.org/kuboschek/jay.svg?branch=prod)](https://travis-ci.org/kuboschek/jay)
+[![Build Status](https://travis-ci.org/OpenJUB/jay.svg?branch=prod)](https://travis-ci.org/kuboschek/jay)
 
 Jay is a simple secret voting system for Jacobs University. Just in case you were wondering we don't really know what it stands for either. Just another acronym with J ...
 
