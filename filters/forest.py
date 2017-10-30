@@ -4,10 +4,9 @@ import execjs
 
 from jay.utils import memoize
 
+
 def init():
-    """
-        Initialises the javascript context
-    """
+    """ Initialises the javascript context """
 
     # find the path to the static files.
 
@@ -30,39 +29,49 @@ def init():
     # and eval them.
     return execjs.compile(src)
 
+
 # initialise the context
 ctx = init()
+
 
 @memoize
 def parse(treestr):
     return ctx.call('parse', treestr)
 
+
 @memoize
 def simplify(tree):
     return ctx.call('simplify', tree)
+
 
 def parse_and_simplify(treestr):
     tree = parse(treestr)
     return simplify(tree)
 
+
 @memoize
 def matches(tree, obj):
     return ctx.call('matches', tree, obj)
 
+
 def map_match(tree, objs):
     return ctx.call('map_match', tree, objs)
+
 
 @memoize
 def layouter(tree, obj):
     return ctx.call('layouter', tree, obj)
 
+
 @memoize
 def renderer(layout):
     return ctx.call('renderer', layout)
 
+
 @memoize
 def renderer_box(contentNode, inp, out):
     return ctx.call('renderer.box', contentNode, inp, out)
+
 
 def parse_and_render(treestr, obj):
     tree = parse(treestr)

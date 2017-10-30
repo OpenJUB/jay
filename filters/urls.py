@@ -1,7 +1,8 @@
 from django.conf.urls import include, url
 
 from django.views.generic import TemplateView
-from filters.views import Forest, FilterNew, FilterTest, FilterTestUser, FilterEdit, FilterDelete
+from filters.views import Forest, FilterNew, FilterTest, FilterTestUser, \
+    FilterEdit, FilterDelete
 
 urlpatterns = [
     url(r'^$', Forest, name="forest"),

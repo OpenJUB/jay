@@ -16,111 +16,118 @@ from settings.forms import EditSystemForm
 SETTINGS_SYSTEMS_TEMPLATE = "systems/systems_overview.html"
 SETTINGS_SYSTEMS_EDIT_TEMPLATE = "systems/systems_edit.html"
 
+
 @login_required
 @superadmin
 def systems(request, alert_type=None, alert_head=None, alert_text=None):
-	voting_system_list = VotingSystem.objects.all()
+    voting_system_list = VotingSystem.objects.all()
 
-	ctx = {'voting_system_list': voting_system_list}
+    ctx = {'voting_system_list': voting_system_list}
 
-	# add an alert state if needed
-	if alert_head or alert_text or alert_type:
-		ctx['alert_type'] = alert_type
-		ctx['alert_head'] = alert_head
-		ctx['alert_text'] = alert_text
+    # add an alert state if needed
+    if alert_head or alert_text or alert_type:
+        ctx['alert_type'] = alert_type
+        ctx['alert_head'] = alert_head
+        ctx['alert_text'] = alert_text
 
-	return render(request, SETTINGS_SYSTEMS_TEMPLATE, ctx)
+    return render(request, SETTINGS_SYSTEMS_TEMPLATE, ctx)
+
 
 @login_required
 @superadmin
 def system_edit(request, system_id):
+    # get the voting system object
+    vs = get_object_or_404(VotingSystem, id=system_id)
 
-	# get the voting system object
-	vs = get_object_or_404(VotingSystem, id=system_id)
+    # make a context
+    ctx = {'vs': vs}
 
-	# make a context
-	ctx = {'vs': vs}
+    if request.method == "POST":
+        try:
+            # parse the form
+            form = EditSystemForm(request.POST)
 
-	if request.method=="POST":
-		try:
-			# parse the form
-			form = EditSystemForm(request.POST)
+            if not form.is_valid():
+                raise Exception
+        except Exception as e:
+            ctx['alert_head'] = 'Saving failed'
+            ctx['alert_text'] = 'Invalid data submitted'
+            print(e)
 
-			if not form.is_valid():
-				raise Exception
-		except Exception as e:
-			ctx['alert_head'] = 'Saving failed'
-			ctx['alert_text'] = 'Invalid data submitted'
-			print(e)
+            return render(request, SETTINGS_SYSTEMS_EDIT_TEMPLATE, ctx)
 
-			return render(request, SETTINGS_SYSTEMS_EDIT_TEMPLATE, ctx)
+        try:
+            # store the fields
+            vs.machine_name = form.cleaned_data['machine_name']
+            vs.simple_name = form.cleaned_data['simple_name']
 
-		try:
-			# store the fields
-			vs.machine_name = form.cleaned_data['machine_name']
-			vs.simple_name = form.cleaned_data['simple_name']
+            # and try to clean + save
+            vs.clean()
+            vs.save()
+        except Exception as e:
+            ctx['alert_head'] = 'Saving failed'
+            ctx['alert_text'] = str(e)
+            return render(request, SETTINGS_SYSTEMS_EDIT_TEMPLATE, ctx)
 
-			# and try to clean + save
-			vs.clean()
-			vs.save()
-		except Exception as e:
-			ctx['alert_head'] = 'Saving failed'
-			ctx['alert_text'] = str(e)
-			return render(request, SETTINGS_SYSTEMS_EDIT_TEMPLATE, ctx)
+        ctx['alert_type'] = 'success'
+        ctx['alert_head'] = 'Saving suceeded'
+        ctx['alert_text'] = 'Voting System saved'
 
-		ctx['alert_type'] = 'success'
-		ctx['alert_head'] = 'Saving suceeded'
-		ctx['alert_text'] = 'Voting System saved'
+    # render the response
+    return render(request, SETTINGS_SYSTEMS_EDIT_TEMPLATE, ctx)
 
-	# render the response
-	return render(request, SETTINGS_SYSTEMS_EDIT_TEMPLATE, ctx)
 
 @login_required
 @superadmin
 def system_delete(request, system_id):
-	# only POST is supported
-	if request.method != "POST":
-		raise Http404
+    # only POST is supported
+    if request.method != "POST":
+        raise Http404
 
-	# get the voting system object
-	vs = get_object_or_404(VotingSystem, id=system_id)
+    # get the voting system object
+    vs = get_object_or_404(VotingSystem, id=system_id)
 
-	# if the vote set is not empty
-	if vs.vote_set.count() != 0:
-		return systems(request, alert_head = "Deletion failed", alert_text="Voting System is not empty. Please delete all votes first. ")
+    # if the vote set is not empty
+    if vs.vote_set.count() != 0:
+        return systems(request, alert_head="Deletion failed",
+                       alert_text="Voting System is not empty. "
+                                  "Please delete all votes first. ")
 
-	# try to delete
-	try:
-		vs.delete()
-	except:
-		return systems(request, alert_head = "Deletion failed")
+    # try to delete
+    try:
+        vs.delete()
+    except:
+        return systems(request, alert_head="Deletion failed")
 
-	# done
-	return systems(request, alert_type = "success", alert_head="Deletion succeeded", alert_text = "Voting System Deleted. ")
+    # done
+    return systems(request, alert_type="success",
+                   alert_head="Deletion succeeded",
+                   alert_text="Voting System Deleted. ")
+
 
 @login_required
 @superadmin
 def system_new(request):
+    # only POST is supported
+    if request.method != "POST":
+        raise Http404
 
-	# only POST is supported
-	if request.method != "POST":
-		raise Http404
+    # TODO: Sensible defaults
+    now = str(int(time.time()))
 
-	# TODO: Sensible defaults
-	now = str(int(time.time()))
+    simple_name = 'Voting System ' + now
+    machine_name = 'voting_system_' + now
 
-	simple_name = 'Voting System '+now
-	machine_name = 'voting_system_' + now
+    # Create a new voting system
+    vs = VotingSystem(simple_name=simple_name, machine_name=machine_name)
 
-	# Create a new voting system
-	vs = VotingSystem(simple_name=simple_name, machine_name=machine_name)
+    # try to save and clean
+    try:
+        vs.clean()
+        vs.save()
+    except:
+        return systems(request, alert_head="Creation failed. ",
+                       alert_text="Unable to save new VotingSystem. ")
 
-	# try to save and clean
-	try:
-		vs.clean()
-		vs.save()
-	except:
-		return systems(request, alert_head="Creation failed. ", alert_text="Unable to save new VotingSystem. ")
-
-	# redirect to the edit page
-	return redirect(reverse('settings:edit', kwargs={'system_id': str(vs.id)}))
+    # redirect to the edit page
+    return redirect(reverse('settings:edit', kwargs={'system_id': str(vs.id)}))
