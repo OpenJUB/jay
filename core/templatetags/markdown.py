@@ -3,6 +3,7 @@ import markdown
 
 register = template.Library()
 
+
 @register.filter(name='markdown')
 def markdownify(text):
     # safe_mode governs how the function handles raw HTML

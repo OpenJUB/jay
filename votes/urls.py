@@ -40,6 +40,7 @@ urlpatterns = [
         url(r'^edit/options/edit$', vote_options_edit, name="option_edit"),
         url(r'^edit/options/up$', vote_options_up, name="option_up"),
         url(r'^edit/options/down$', vote_options_down, name="option_down"),
-        url(r'^edit/options/delete$', vote_options_remove, name="option_delete")
+        url(r'^edit/options/delete$', vote_options_remove,
+            name="option_delete")
     ])),
 ]

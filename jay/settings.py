@@ -16,7 +16,6 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = (
@@ -66,8 +65,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'jay.wsgi.application'
 
 # OpenJUB auth
-AUTHENTICATION_BACKENDS = ( 'django.contrib.auth.backends.ModelBackend',
-                            'users.ojub_auth.OjubBackend')
+AUTHENTICATION_BACKENDS = ('django.contrib.auth.backends.ModelBackend',
+                           'users.ojub_auth.OjubBackend')
 
 # Default after login redirect
 # These are named URL routes
@@ -83,7 +82,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/

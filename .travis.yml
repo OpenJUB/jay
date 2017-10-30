@@ -27,4 +27,5 @@ before_script:
 
 
 script:
+  - python check_pep8.py
   - python manage.py test

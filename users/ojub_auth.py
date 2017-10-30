@@ -7,102 +7,107 @@ import requests
 
 OPENJUB_BASE = "https://api.jacobs.university/"
 
+
 class OjubBackend(object):
-	"""
-	Authenticates credentials against the OpenJUB database.
+    """
+    Authenticates credentials against the OpenJUB database.
 
-	The URL for the server is configured by OPENJUB_BASE in the settings.
+    The URL for the server is configured by OPENJUB_BASE in the settings.
 
-	This class does not fill in user profiles, this has to be handled
-	in other places
-	"""
-	def authenticate(self, username=None, password=None):
-		r = requests.post(OPENJUB_BASE + "auth/signin",
-			data = {'username':username, 'password': password})
+    This class does not fill in user profiles, this has to be handled
+    in other places
+    """
 
-		if r.status_code != requests.codes.ok:
-			return None
+    def authenticate(self, username=None, password=None):
+        r = requests.post(OPENJUB_BASE + "auth/signin",
+                          data={'username': username, 'password': password})
 
-		resp = r.json()
+        if r.status_code != requests.codes.ok:
+            return None
 
-		uname = resp['user']
-		token = resp['token']
+        resp = r.json()
 
-		details = requests.get(OPENJUB_BASE + "user/me",
-			params = {'token':token})
+        uname = resp['user']
+        token = resp['token']
 
-		if details.status_code != requests.codes.ok:
-			print("Could not get user details")
-			return None
+        details = requests.get(OPENJUB_BASE + "user/me",
+                               params={'token': token})
 
-		try:
-			user = User.objects.get(username=uname)
-		except User.DoesNotExist:
-			user = User(username=uname)
+        if details.status_code != requests.codes.ok:
+            print("Could not get user details")
+            return None
 
-			user.set_unusable_password()
+        try:
+            user = User.objects.get(username=uname)
+        except User.DoesNotExist:
+            user = User(username=uname)
 
-			# TODO Don't hardcode this
-			if user.username in ["lkuboschek", "twiesing", "jinzhang", "rdeliallis"]:
-				user.is_staff = True
-				user.is_superuser = True
+            user.set_unusable_password()
 
-			data = details.json()
+            # TODO Don't hardcode this
+            if user.username in ["lkuboschek", "twiesing", "jinzhang",
+                                 "rdeliallis"]:
+                user.is_staff = True
+                user.is_superuser = True
 
-			user.first_name = data['firstName']
-			user.last_name = data['lastName']
-			user.email = data['email']
+            data = details.json()
 
-			user.save()
+            user.first_name = data['firstName']
+            user.last_name = data['lastName']
+            user.email = data['email']
 
-		# Make a user profile if there isn't one already
-		try:
-			profile = UserProfile.objects.get(user=user)
-		except UserProfile.DoesNotExist:
-			profile = UserProfile(user=user)
+            user.save()
 
-		profile.details = details.text
-		profile.save()
+        # Make a user profile if there isn't one already
+        try:
+            profile = UserProfile.objects.get(user=user)
+        except UserProfile.DoesNotExist:
+            profile = UserProfile(user=user)
 
-		return user
+        profile.details = details.text
+        profile.save()
 
-	def get_user(self, user_id):
-		try:
-			return User.objects.get(pk=user_id)
-		except User.DoesNotExist:
-			return None
+        return user
+
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
 
 def get_all(username, password):
-	r = requests.post(OPENJUB_BASE + "auth/signin",
-		data = {'username':username, 'password': password})
+    r = requests.post(OPENJUB_BASE + "auth/signin",
+                      data={'username': username, 'password': password})
 
-	if r.status_code != requests.codes.ok:
-		return None
+    if r.status_code != requests.codes.ok:
+        return None
 
-	resp = r.json()
+    resp = r.json()
 
-	uname = resp['user']
-	token = resp['token']
+    uname = resp['user']
+    token = resp['token']
 
-	users = []
+    users = []
 
-	TIMEOUT = 60
+    TIMEOUT = 60
 
-	request = requests.get(OPENJUB_BASE + "query",
-		params = {'token':token, 'limit': 20000}, timeout = TIMEOUT)
+    request = requests.get(OPENJUB_BASE + "query",
+                           params={'token': token, 'limit': 20000},
+                           timeout=TIMEOUT)
 
-	while True:
-		if request.status_code != requests.codes.ok:
-			return None
-		else:
-			# read json
-			resjson = request.json()
+    while True:
+        if request.status_code != requests.codes.ok:
+            return None
+        else:
+            # read json
+            resjson = request.json()
 
-			# load all the users
-			users += resjson["data"]
+            # load all the users
+            users += resjson["data"]
 
-			# if there was no data or no next field, continue
-			if len(resjson["data"]) == 0 or not resjson["next"]:
-				return users
-			else:
-				request = requests.get(resjson["next"], timeout = TIMEOUT)
+            # if there was no data or no next field, continue
+            if len(resjson["data"]) == 0 or not resjson["next"]:
+                return users
+            else:
+                request = requests.get(resjson["next"], timeout=TIMEOUT)

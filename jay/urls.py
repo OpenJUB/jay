@@ -33,17 +33,27 @@ urlpatterns = [
     url(r'^djangoadmin/', include(admin.site.urls)),
 
     # Static stuff
-    url(r'^imprint/$', TemplateView.as_view(template_name="base/imprint.html"), name="imprint"),
-    url(r'^privacy/$', TemplateView.as_view(template_name="base/privacy.html"), name="privacy"),
-    url(r'^about/$', TemplateView.as_view(template_name="base/humblebrag.html"), name="about"),
-    url(r'^help/$', TemplateView.as_view(template_name="help/help.html"), name="help"),
+    url(r'^imprint/$', TemplateView.as_view(template_name="base/imprint.html"),
+        name="imprint"),
+    url(r'^privacy/$', TemplateView.as_view(template_name="base/privacy.html"),
+        name="privacy"),
+    url(r'^about/$',
+        TemplateView.as_view(template_name="base/humblebrag.html"),
+        name="about"),
+    url(r'^help/$', TemplateView.as_view(template_name="help/help.html"),
+        name="help"),
 
     # Help
-    url(r'^help/filters/$', TemplateView.as_view(template_name="filters/filter_help.html"), name="filter_help"),
+    url(r'^help/filters/$',
+        TemplateView.as_view(template_name="filters/filter_help.html"),
+        name="filter_help"),
 
     # Authentication
-    url(r'^login/', auth_views.login, {'template_name': 'auth/login.html'}, name="login"),
-    url(r'^logout/', auth_views.logout, {'template_name': 'auth/logout.html', 'next_page':'home'}, name="logout"),
+    url(r'^login/', auth_views.login, {'template_name': 'auth/login.html'},
+        name="login"),
+    url(r'^logout/', auth_views.logout,
+        {'template_name': 'auth/logout.html', 'next_page': 'home'},
+        name="logout"),
 
     # Sub-projects
     url(r'^filters/', include(filters_urls, namespace='filters')),

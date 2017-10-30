@@ -5,15 +5,14 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 
-
 from django.http import Http404
 
 from filters.models import UserFilter
-from filters.forms import NewFilterForm, EditFilterForm, FilterTestForm, FilterTestUserForm
+from filters.forms import NewFilterForm, EditFilterForm, FilterTestForm, \
+    FilterTestUserForm
 import filters.forest as forest
 
 import json
-
 
 from votes.models import VotingSystem
 
@@ -23,10 +22,10 @@ FILTER_FOREST_TEMPLATE = "filters/filter_forest.html"
 FILTER_EDIT_TEMPLATE = "filters/filter_edit.html"
 FILTER_TEST_TEMPLATE = "filters/filter_test.html"
 
+
 @login_required
 @priviliged
 def Forest(request, alert_type=None, alert_head=None, alert_text=None):
-
     # if the user does not have enough priviliges, throw an exception
     if not request.user.profile.isElevated():
         raise PermissionDenied
@@ -36,8 +35,9 @@ def Forest(request, alert_type=None, alert_head=None, alert_text=None):
 
     # Set up the breadcrumbs
     bc = []
-    bc.append({'url':reverse('home'), 'text':'Home'})
-    bc.append({'url':reverse('filters:forest'), 'text':'Filters', 'active':True})
+    bc.append({'url': reverse('home'), 'text': 'Home'})
+    bc.append(
+        {'url': reverse('filters:forest'), 'text': 'Filters', 'active': True})
     ctx['breadcrumbs'] = bc
 
     (admin_systems, other_systems) = request.user.profile.getSystems()
@@ -53,6 +53,7 @@ def Forest(request, alert_type=None, alert_head=None, alert_text=None):
         ctx['alert_text'] = alert_text
 
     return render(request, FILTER_FOREST_TEMPLATE, ctx)
+
 
 @login_required
 def FilterNew(request):
@@ -70,7 +71,8 @@ def FilterNew(request):
 
         system_name = form.cleaned_data['system_name']
     except:
-        return Forest(request, alert_head="Creation failed", alert_text="Invalid data submitted. ")
+        return Forest(request, alert_head="Creation failed",
+                      alert_text="Invalid data submitted. ")
 
     # get the votingsystem
     system = get_object_or_404(VotingSystem, machine_name=system_name)
@@ -78,11 +80,14 @@ def FilterNew(request):
     # check if the user can edit it.
     # if not, go back to the overview
     if not system.isAdmin(request.user.profile):
-        return Forest(request, alert_head="Creation failed", alert_text="Nice try. You are not allowed to edit this VotingSystem. ")
+        return Forest(request, alert_head="Creation failed",
+                      alert_text="Nice try. You are not allowed to edit "
+                                 "this VotingSystem. ")
 
     # create a new filter
     # TODO: Make a better default name
-    newFilter = UserFilter(system=system, name="Unnamed User Filter", value="true")
+    newFilter = UserFilter(system=system, name="Unnamed User Filter",
+                           value="true")
 
     # save the filter in the database
     try:
@@ -92,16 +97,17 @@ def FilterNew(request):
         return Forest(request, alert_head="Unable to store new user object. ")
 
     # and redirect to the edit page
-    return redirect(reverse('filters:edit', kwargs={'filter_id': newFilter.id}))
+    return redirect(
+        reverse('filters:edit', kwargs={'filter_id': newFilter.id}))
+
 
 @login_required
 def FilterDelete(request, filter_id):
-
     # we need some post data, otherwise it wont work.
     if request.method != "POST":
         raise Http404
 
-    #  try and grab the user filter
+    # try and grab the user filter
     filter = get_object_or_404(UserFilter, id=filter_id)
 
     # find the corresponding voting system.
@@ -110,11 +116,15 @@ def FilterDelete(request, filter_id):
     # check if the user can edit it.
     # if not, go back to the overview
     if not system.isAdmin(request.user.profile):
-        return Forest(request, alert_head="Deletion failed", alert_text="Nice try. You don't have permissions to delete this filter. ")
+        return Forest(request, alert_head="Deletion failed",
+                      alert_text="Nice try. You don't have permissions to "
+                                 "delete this filter. ")
 
     # check that no voting system is using this filter before deleting.
     if filter.vote_set.count() > 0:
-        return Forest(request, alert_head="Deletion failed", alert_text="There is still a vote using this filter. You can not delete it right now. ")
+        return Forest(request, alert_head="Deletion failed",
+                      alert_text="There is still a vote using this filter. "
+                                 "You can not delete it right now. ")
 
     # Delete the item
     try:
@@ -123,7 +133,10 @@ def FilterDelete(request, filter_id):
         return Forest(request, alert_head="Deletion failed")
 
     # show the forest page
-    return Forest(request, alert_type="success", alert_head="Deletion successful", alert_text="The filter has been deleted. ")
+    return Forest(request, alert_type="success",
+                  alert_head="Deletion successful",
+                  alert_text="The filter has been deleted. ")
+
 
 @login_required
 @priviliged
@@ -141,12 +154,12 @@ def FilterEdit(request, filter_id):
 
     # Set up the breadcrumbs
     bc = []
-    bc.append({'url':reverse('home'), 'text':'Home'})
-    bc.append({'url':reverse('filters:forest'), 'text':'Filters'})
-    bc.append({'url':filter.get_absolute_url(), 'text':filter.name, 'active':True})
+    bc.append({'url': reverse('home'), 'text': 'Home'})
+    bc.append({'url': reverse('filters:forest'), 'text': 'Filters'})
+    bc.append({'url': filter.get_absolute_url(), 'text': filter.name,
+               'active': True})
 
     ctx['breadcrumbs'] = bc
-
 
     if request.method == "POST":
         # parse the post data from the form
@@ -192,13 +205,14 @@ def FilterEdit(request, filter_id):
     # render all the stuff
     return render(request, FILTER_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 @priviliged
-def FilterTest(request, filter_id, obj = None):
+def FilterTest(request, filter_id, obj=None):
     # try and grab the user filter
     filter = get_object_or_404(UserFilter, id=filter_id)
 
-    if obj == None:
+    if obj is None:
         obj = '{}'
 
         # if we have some post data try and parse it
@@ -218,15 +232,16 @@ def FilterTest(request, filter_id, obj = None):
 
     # Set up the breadcrumbs
     bc = []
-    bc.append({'url':reverse('home'), 'text':'Home'})
-    bc.append({'url':reverse('filters:forest'), 'text':'Filters'})
-    bc.append({'url':filter.get_absolute_url(), 'text':filter.name})
-    bc.append({'url':reverse('filters:test', kwargs={'filter_id':filter.id}), 'text':'Test', 'active':True})
-
+    bc.append({'url': reverse('home'), 'text': 'Home'})
+    bc.append({'url': reverse('filters:forest'), 'text': 'Filters'})
+    bc.append({'url': filter.get_absolute_url(), 'text': filter.name})
+    bc.append({'url': reverse('filters:test', kwargs={'filter_id': filter.id}),
+               'text': 'Test', 'active': True})
 
     ctx['breadcrumbs'] = bc
 
     return render(request, FILTER_TEST_TEMPLATE, ctx)
+
 
 @login_required
 @priviliged
@@ -249,4 +264,4 @@ def FilterTestUser(request, filter_id):
         print(e)
         pass
 
-    return FilterTest(request, filter_id, obj = obj)
+    return FilterTest(request, filter_id, obj=obj)

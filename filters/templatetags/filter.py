@@ -4,9 +4,9 @@ import json
 
 register = template.Library()
 
+
 @register.simple_tag(takes_context=False)
 def render_full(src, inp):
-
     # load some json
     obj = json.loads(inp)
 
@@ -25,9 +25,10 @@ def render_full(src, inp):
 
 @register.simple_tag(takes_context=False)
 def render_lbox(name, inp, out):
-    box = "<div class='content_box_logical content_box_"+name.upper()+"'><div class='content_box_logic_content'></div></div>"
+    box = "<div class='content_box_logical content_box_" + name.upper() + \
+          "'><div class='content_box_logic_content'></div></div>"
 
-    inp = list(map(lambda x:x=='1', str(inp)))
+    inp = list(map(lambda x: x == '1', str(inp)))
     out = (out == '1')
 
     return forest.renderer_box(box, inp, out)

@@ -1,7 +1,8 @@
 import json
 import time
 
-from django.shortcuts import render, get_object_or_404, render_to_response, redirect
+from django.shortcuts import render, get_object_or_404, render_to_response, \
+    redirect
 
 from django.utils import formats
 
@@ -25,7 +26,9 @@ from settings.models import VotingSystem
 
 from django.contrib.auth.models import User
 
-from votes.forms import EditVoteForm, EditVoteFilterForm, EditVoteOptionsForm, GetVoteOptionForm, EditVoteOptionForm, PasswordForm, EditScheduleForm, AdminSelectForm
+from votes.forms import EditVoteForm, EditVoteFilterForm, \
+    EditVoteOptionsForm, GetVoteOptionForm, EditVoteOptionForm, PasswordForm, \
+    EditScheduleForm, AdminSelectForm
 
 VOTE_ERROR_TEMPLATE = "vote/vote_msg.html"
 VOTE_RESULT_TEMPLATE = "vote/vote_result.html"
@@ -51,7 +54,9 @@ def system_home(request, system_name):
 
     if request.user.is_authenticated() and vs.isAdmin(request.user.profile):
         ctx['votes'] = all_votes
-        ctx['results'] = Vote.objects.filter(system=vs, status__stage__in=[Status.PUBLIC, Status.CLOSE])
+        ctx['results'] = Vote.objects.filter(system=vs,
+                                             status__stage__in=[Status.PUBLIC,
+                                                                Status.CLOSE])
 
         ctx['alert_type'] = 'info'
         ctx['alert_head'] = 'Non-public items shown'
@@ -60,14 +65,17 @@ def system_home(request, system_name):
         ctx['is_vs_admin'] = True
 
     else:
-        ctx['votes'] = Vote.objects.filter(system=ctx['vs'], status__stage=Status.OPEN)
-        ctx['results'] = Vote.objects.filter(system=ctx['vs'], status__stage=Status.PUBLIC)
+        ctx['votes'] = Vote.objects.filter(system=ctx['vs'],
+                                           status__stage=Status.OPEN)
+        ctx['results'] = Vote.objects.filter(system=ctx['vs'],
+                                             status__stage=Status.PUBLIC)
 
     return render(request, "vote/vote_system_overview.html", ctx)
 
-@login_required
-def admin(request, system_name, alert_type=None, alert_head=None, alert_text=None):
 
+@login_required
+def admin(request, system_name, alert_type=None, alert_head=None,
+          alert_text=None):
     # get the voting system
     ctx = {}
     vs = get_object_or_404(VotingSystem, machine_name=system_name)
@@ -88,15 +96,13 @@ def admin(request, system_name, alert_type=None, alert_head=None, alert_text=Non
     ctx['admins'] = vs.admin_set.all()
     admin_users = [a.user for a in ctx['admins']]
 
-    ctx['not_admins'] = [ u for u in User.objects.all() if not u in admin_users ]
+    ctx['not_admins'] = [u for u in User.objects.all() if u not in admin_users]
 
     return render(request, SYS_EDIT_TEMPLATE, ctx)
 
 
-
 @login_required
 def admin_add(request, system_name):
-
     # you may only use POST
     if request.method != "POST":
         raise Http404
@@ -118,18 +124,24 @@ def admin_add(request, system_name):
 
         user = User.objects.filter(username=form.cleaned_data["username"])[0]
     except:
-        return admin(request, system_name=system_name, alert_head='Grant Failed', alert_text='Invalid data submitted')
+        return admin(request, system_name=system_name,
+                     alert_head='Grant Failed',
+                     alert_text='Invalid data submitted')
 
     try:
         sa = Admin(user=user, system=vs)
         sa.save()
     except Exception as e:
-        return admin(request, system_name=system_name, alert_head='Grant Failed', alert_text=str(e))
+        return admin(request, system_name=system_name,
+                     alert_head='Grant Failed', alert_text=str(e))
 
-    return admin(request, system_name=system_name, alert_type = "success", alert_head = "Grant succeeded", alert_text = "User added to admins. ")
+    return admin(request, system_name=system_name, alert_type="success",
+                 alert_head="Grant succeeded",
+                 alert_text="User added to admins. ")
+
+
 @login_required
 def admin_remove(request, system_name):
-
     # you may only use POST
     if request.method != "POST":
         raise Http404
@@ -151,7 +163,9 @@ def admin_remove(request, system_name):
 
         user = User.objects.filter(username=form.cleaned_data["username"])[0]
     except:
-        return admin(request, system_name=system_name, alert_head='Removing failed', alert_text='Invalid data submitted')
+        return admin(request, system_name=system_name,
+                     alert_head='Removing failed',
+                     alert_text='Invalid data submitted')
 
     try:
         the_admin = Admin.objects.filter(system=vs, user=user)[0]
@@ -161,9 +175,12 @@ def admin_remove(request, system_name):
 
         the_admin.delete()
     except Exception as e:
-        return admin(request, system_name=system_name, alert_head='Removing failed. ', alert_text=str(e))
+        return admin(request, system_name=system_name,
+                     alert_head='Removing failed. ', alert_text=str(e))
 
-    return admin(request, system_name=system_name, alert_type = "success", alert_head = "Removing succeeded", alert_text = "User is no longer an admin. ")
+    return admin(request, system_name=system_name, alert_type="success",
+                 alert_head="Removing succeeded",
+                 alert_text="User is no longer an admin. ")
 
 
 def get_vote_props(ctx, vote):
@@ -178,30 +195,37 @@ def get_vote_props(ctx, vote):
     ctx["vote_is_public"] = (vote.status.stage == Status.PUBLIC)
 
     # check for all the times
-    ctx["vote_has_open_time"] = (vote.status.open_time != None)
-    ctx["vote_has_close_time"] = (vote.status.close_time != None)
-    ctx["vote_has_public_time"] = (vote.status.public_time != None)
+    ctx["vote_has_open_time"] = (vote.status.open_time is not None)
+    ctx["vote_has_close_time"] = (vote.status.close_time is not None)
+    ctx["vote_has_public_time"] = (vote.status.public_time is not None)
 
     if ctx["vote_has_open_time"]:
-        ctx["vote_open_time"] = vote.status.open_time.strftime("%Y-%m-%d %H:%M:%S")
+        ctx["vote_open_time"] = vote.status.open_time.strftime(
+            "%Y-%m-%d %H:%M:%S")
 
     if ctx["vote_has_close_time"]:
-        ctx["vote_close_time"] = vote.status.close_time.strftime("%Y-%m-%d %H:%M:%S")
+        ctx["vote_close_time"] = vote.status.close_time.strftime(
+            "%Y-%m-%d %H:%M:%S")
 
     if ctx["vote_has_public_time"]:
-        ctx["vote_public_time"] = vote.status.public_time.strftime("%Y-%m-%d %H:%M:%S")
-
+        ctx["vote_public_time"] = vote.status.public_time.strftime(
+            "%Y-%m-%d %H:%M:%S")
 
     # and what we can do
     ctx["can_set_stage"] = ctx["vote_is_init"]
     ctx["can_set_time"] = ctx["vote_is_init"]
 
-    ctx["can_update_eligibile"] = ctx["vote_is_staged"] or ctx["vote_is_open"] or ctx["vote_is_closed"]
-    ctx["can_set_open"] = ctx["vote_is_staged"] and (not ctx["vote_has_open_time"])
-    ctx["can_set_close"] = ctx["vote_is_open"] and (not ctx["vote_has_close_time"])
-    ctx["can_set_public"] = ctx["vote_is_closed"] and (not ctx["vote_has_public_time"])
+    ctx["can_update_eligibile"] = ctx["vote_is_staged"] or ctx[
+        "vote_is_open"] or ctx["vote_is_closed"]
+    ctx["can_set_open"] = ctx["vote_is_staged"] and (
+        not ctx["vote_has_open_time"])
+    ctx["can_set_close"] = ctx["vote_is_open"] and (
+        not ctx["vote_has_close_time"])
+    ctx["can_set_public"] = ctx["vote_is_closed"] and (
+        not ctx["vote_has_public_time"])
 
     return ctx
+
 
 def vote_edit_context(request, system_name, vote_name):
     """
@@ -229,13 +253,13 @@ def vote_edit_context(request, system_name, vote_name):
     ctx['vote_uri'] = request.build_absolute_uri(
         reverse('votes:vote', kwargs={
             "system_name": system.machine_name,
-            "vote_name":vote.machine_name
+            "vote_name": vote.machine_name
         })
     )
     ctx['results_uri'] = request.build_absolute_uri(
         reverse('votes:results', kwargs={
             "system_name": system.machine_name,
-            "vote_name":vote.machine_name
+            "vote_name": vote.machine_name
         })
     )
 
@@ -247,6 +271,7 @@ def vote_edit_context(request, system_name, vote_name):
     ctx = get_vote_props(ctx, vote)
 
     return (system, vote, ctx)
+
 
 @login_required
 def vote_add(request, system_name):
@@ -278,7 +303,9 @@ def vote_add(request, system_name):
 
     v.save()
 
-    return redirect('votes:edit', system_name=system_name, vote_name=v.machine_name)
+    return redirect('votes:edit', system_name=system_name,
+                    vote_name=v.machine_name)
+
 
 @login_required
 def vote_delete(request, system_name, vote_name):
@@ -289,6 +316,7 @@ def vote_delete(request, system_name, vote_name):
 
     return redirect('votes:system', system_name=system_name)
 
+
 @login_required
 def vote_edit(request, system_name, vote_name):
     (system, vote, ctx) = vote_edit_context(request, system_name, vote_name)
@@ -298,7 +326,9 @@ def vote_edit(request, system_name, vote_name):
         # if the vote is read-only, do not save
         if ctx["vote_readonly"]:
             ctx['alert_head'] = 'Saving failed'
-            ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+            ctx[
+                'alert_text'] = 'Nice try. A vote that has been opened can ' \
+                                'not be edited. '
             return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
         # try to parse the form
@@ -336,6 +366,7 @@ def vote_edit(request, system_name, vote_name):
     # render the template
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_filter(request, system_name, vote_name):
     # you may only use POST
@@ -347,7 +378,9 @@ def vote_filter(request, system_name, vote_name):
     # if the vote is read-only, do not save
     if ctx["vote_readonly"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+        ctx[
+            'alert_text'] = 'Nice try. A vote that has been opened can not ' \
+                            'be edited. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # now try and parse the form
@@ -364,7 +397,8 @@ def vote_filter(request, system_name, vote_name):
     # write filter, then save to db.
     try:
         # store the filter by id
-        vote.filter = UserFilter.objects.filter(id=form.cleaned_data["filter_id"])[0]
+        vote.filter = \
+            UserFilter.objects.filter(id=form.cleaned_data["filter_id"])[0]
 
         # and try to clean + save
         vote.clean()
@@ -383,6 +417,7 @@ def vote_filter(request, system_name, vote_name):
     # so render the basic template
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_stage(request, system_name, vote_name):
     # you may only use POST
@@ -394,7 +429,8 @@ def vote_stage(request, system_name, vote_name):
     # if the vote is not closed, dont make it public
     if not ctx["can_set_stage"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'A vote can only be staged when it is in init stage. '
+        ctx['alert_text'] = 'A vote can only be staged when it is in init ' \
+                            'stage. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # now try and parse the form
@@ -413,11 +449,9 @@ def vote_stage(request, system_name, vote_name):
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
-
     # set the vote status to public
     try:
         vote.update_eligibility(username, password)
-
 
         vote.status.stage = Status.STAGED
         vote.status.save()
@@ -436,6 +470,7 @@ def vote_stage(request, system_name, vote_name):
     ctx['alert_text'] = 'Vote has been staged. '
 
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
+
 
 @login_required
 def vote_time(request, system_name, vote_name):
@@ -469,7 +504,6 @@ def vote_time(request, system_name, vote_name):
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
-
     # set the vote status to public
     try:
         vote.status.open_time = open_time
@@ -490,6 +524,7 @@ def vote_time(request, system_name, vote_name):
     ctx['alert_text'] = 'Scheduling has been saved'
 
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
+
 
 @login_required
 def vote_update(request, system_name, vote_name):
@@ -521,7 +556,6 @@ def vote_update(request, system_name, vote_name):
         ctx['alert_text'] = 'Invalid data submitted'
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
-
     # set the vote status to public
     try:
         vote.update_eligibility(username, password)
@@ -540,6 +574,7 @@ def vote_update(request, system_name, vote_name):
 
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_open(request, system_name, vote_name):
     # you may only use POST
@@ -551,7 +586,9 @@ def vote_open(request, system_name, vote_name):
     # if the vote is not closed, dont make it public
     if not ctx["can_set_open"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'A vote can only be set to open if there is no open time and it is already staged. '
+        ctx[
+            'alert_text'] = 'A vote can only be set to open if there is no ' \
+                            'open time and it is already staged. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # set the vote status to public
@@ -573,6 +610,7 @@ def vote_open(request, system_name, vote_name):
 
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_close(request, system_name, vote_name):
     # you may only use POST
@@ -584,7 +622,9 @@ def vote_close(request, system_name, vote_name):
     # if the vote is not closed, dont make it public
     if not ctx["can_set_close"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'A vote can only be set to close if there is no close time and it is already open. '
+        ctx[
+            'alert_text'] = 'A vote can only be set to close if there is no ' \
+                            'close time and it is already open. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # set the vote status to public
@@ -606,6 +646,7 @@ def vote_close(request, system_name, vote_name):
 
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_public(request, system_name, vote_name):
     # you may only use POST
@@ -617,7 +658,9 @@ def vote_public(request, system_name, vote_name):
     # if the vote is not closed, dont make it public
     if not ctx["can_set_public"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'A vote can only be set to public if there is no public time and it is already closed. '
+        ctx[
+            'alert_text'] = 'A vote can only be set to public if there is ' \
+                            'no public time and it is already closed. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # set the vote status to public
@@ -639,6 +682,7 @@ def vote_public(request, system_name, vote_name):
 
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_option(request, system_name, vote_name):
     # you may only use POST
@@ -650,7 +694,9 @@ def vote_option(request, system_name, vote_name):
     # if the vote is read-only, do not save
     if ctx["vote_readonly"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+        ctx[
+            'alert_text'] = 'Nice try. A vote that has been opened can not ' \
+                            'be edited. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # now try and parse the form
@@ -675,15 +721,20 @@ def vote_option(request, system_name, vote_name):
 
         # check range for min votes
         if min_votes < 0 or min_votes > count:
-            raise Exception("Minimum number of votes must be between 0 and the number of available options. ")
+            raise Exception(
+                "Minimum number of votes must be between 0 and the number of "
+                "available options. ")
 
         # check range for max votes
         if max_votes < 0 or max_votes > count:
-            raise Exception("Maximum number of votes must be between 0 and the number of available options. ")
+            raise Exception(
+                "Maximum number of votes must be between 0 and the number of "
+                "available options. ")
 
         if min_votes > max_votes:
-            raise Exception("The maximum number of votes may not be smaller than the minimum number of votes. ")
-
+            raise Exception(
+                "The maximum number of votes may not be smaller than the "
+                "minimum number of votes. ")
 
         vote.min_votes = min_votes
         vote.max_votes = max_votes
@@ -718,7 +769,9 @@ def vote_options_add(request, system_name, vote_name):
     # if the vote is read-only, do not save
     if ctx["vote_readonly"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+        ctx[
+            'alert_text'] = 'Nice try. A vote that has been opened can not ' \
+                            'be edited. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     # try to add an option
@@ -735,6 +788,7 @@ def vote_options_add(request, system_name, vote_name):
     ctx['alert_text'] = 'New option added. '
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_options_edit(request, system_name, vote_name):
     # you may only use POST
@@ -746,7 +800,9 @@ def vote_options_edit(request, system_name, vote_name):
     # if the vote is read-only, do not save
     if ctx["vote_readonly"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+        ctx[
+            'alert_text'] = 'Nice try. A vote that has been opened can not ' \
+                            'be edited. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     try:
@@ -763,7 +819,7 @@ def vote_options_edit(request, system_name, vote_name):
     try:
         option = Option.objects.filter(id=form.cleaned_data["option_id"])[0]
 
-        if not option.id in vote.option_set.values_list('id', flat=True):
+        if option.id not in vote.option_set.values_list('id', flat=True):
             raise Exception
     except:
         ctx['alert_head'] = 'Saving failed'
@@ -792,6 +848,7 @@ def vote_options_edit(request, system_name, vote_name):
     # so render the basic template
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_options_remove(request, system_name, vote_name):
     # you may only use POST
@@ -803,7 +860,9 @@ def vote_options_remove(request, system_name, vote_name):
     # if the vote is read-only, do not save
     if ctx["vote_readonly"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+        ctx[
+            'alert_text'] = 'Nice try. A vote that has been opened can not ' \
+                            'be edited. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     try:
@@ -838,6 +897,7 @@ def vote_options_remove(request, system_name, vote_name):
     ctx['alert_text'] = 'Option removed. '
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_options_down(request, system_name, vote_name):
     # you may only use POST
@@ -849,7 +909,9 @@ def vote_options_down(request, system_name, vote_name):
     # if the vote is read-only, do not save
     if ctx["vote_readonly"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+        ctx[
+            'alert_text'] = 'Nice try. A vote that has been opened can not ' \
+                            'be edited. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     try:
@@ -884,6 +946,7 @@ def vote_options_down(request, system_name, vote_name):
     ctx['alert_text'] = 'Option moved down. '
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
+
 @login_required
 def vote_options_up(request, system_name, vote_name):
     # you may only use POST
@@ -895,7 +958,9 @@ def vote_options_up(request, system_name, vote_name):
     # if the vote is read-only, do not save
     if ctx["vote_readonly"]:
         ctx['alert_head'] = 'Saving failed'
-        ctx['alert_text'] = 'Nice try. A vote that has been opened can not be edited. '
+        ctx[
+            'alert_text'] = 'Nice try. A vote that has been opened can not ' \
+                            'be edited. '
         return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
     try:
@@ -931,7 +996,6 @@ def vote_options_up(request, system_name, vote_name):
     return render(request, VOTE_EDIT_TEMPLATE, ctx)
 
 
-
 def results(request, system_name, vote_name):
     ctx = {}
 
@@ -942,25 +1006,32 @@ def results(request, system_name, vote_name):
 
     # set options and the vote
     ctx['vote'] = vote
-    ctx['options'] = vote.option_set.order_by('-count').annotate(percent=(F("count") * 100 /vote.passivevote.num_voters))
+    ctx['options'] = vote.option_set.order_by('-count').annotate(
+        percent=(F("count") * 100 / vote.passivevote.num_voters))
 
     if vote.status.stage != Status.PUBLIC:
-        if vote.status.stage == Status.CLOSE and request.user.is_authenticated():
+        if vote.status.stage == Status.CLOSE and \
+                request.user.is_authenticated():
             if vote.system.isAdmin(request.user.profile):
                 ctx['alert_type'] = 'info'
                 ctx['alert_head'] = 'Non-public'
-                ctx['alert_text'] = 'The results are not public yet. You can see the results because you are admin.'
+                ctx['alert_text'] = 'The results are not public yet. You ' \
+                                    'can see the results because you are ' \
+                                    'admin.'
 
                 return render(request, VOTE_RESULT_TEMPLATE, ctx)
 
         ctx['alert_type'] = 'danger'
         ctx['alert_head'] = 'Non-public'
-        ctx['alert_text'] = 'The results are not public yet. Please come back later.'
+        ctx[
+            'alert_text'] = 'The results are not public yet. Please come ' \
+                            'back later.'
 
         return render(request, VOTE_ERROR_TEMPLATE, ctx)
 
     # render the stuff
     return render(request, VOTE_RESULT_TEMPLATE, ctx)
+
 
 class VoteView(View):
     def __init__(self, preview=False):
@@ -992,17 +1063,22 @@ class VoteView(View):
 
             if not filter:
                 ctx['alert_head'] = "No filter given."
-                ctx['alert_text'] = "This vote has not been configured properly."
+                ctx[
+                    'alert_text'] = "This vote has not been configured " \
+                                    "properly."
                 error = True
             elif not filter.matches(user_details):
                 ctx['alert_head'] = "Not eligible"
-                ctx['alert_text'] = "You are not eligible for this vote. Tough luck."
+                ctx[
+                    'alert_text'] = "You are not eligible for this vote. " \
+                                    "Tough luck."
                 error = True
-
-
         except UserProfile.DoesNotExist:
             ctx['alert_head'] = "User details invalid."
-            ctx['alert_text'] = "Your user details could not be retrieved from CampusNet. Please log out and try again later."
+            ctx[
+                'alert_text'] = "Your user details could not be retrieved " \
+                                "from CampusNet. Please log out and try " \
+                                "again later."
             error = True
 
         try:
@@ -1029,11 +1105,14 @@ class VoteView(View):
 
         if not error or self.preview:
             if status.stage == Status.PUBLIC:
-                return redirect('votes:results', system_name=system.machine_name, vote_name=vote.machine_name)
+                return redirect('votes:results',
+                                system_name=system.machine_name,
+                                vote_name=vote.machine_name)
 
             return render(request, "vote/vote_vote.html", context=ctx)
         else:
-            return render(request, VOTE_ERROR_TEMPLATE, context=ctx, status=403)
+            return render(request, VOTE_ERROR_TEMPLATE, context=ctx,
+                          status=403)
 
     def render_error_response(self, ctx):
         return render_to_response(VOTE_ERROR_TEMPLATE, context=ctx)
@@ -1043,16 +1122,15 @@ class VoteView(View):
         ctx = {}
 
         # Make sure all the POST params are present
-        if not 'vote_id' in request.POST:
+        if 'vote_id' not in request.POST:
             ctx['alert_head'] = "Something happened."
             ctx['alert_text'] = "Go back to the start and try again."
             return self.render_error_response(ctx)
 
-        if not 'options_selected' in request.POST:
+        if 'options_selected' not in request.POST:
             ctx['alert_head'] = "Something happened."
             ctx['alert_text'] = "Go back and start over."
             return self.render_error_response(ctx)
-
 
         options = json.loads(request.POST['options_selected'])
 
@@ -1071,7 +1149,8 @@ class VoteView(View):
         ctx['vote'] = vote
         ctx['options'] = options_obj
 
-        if not (len(options_obj) >= vote.min_votes and len(options_obj) <= vote.max_votes):
+        if not (len(options_obj) >= vote.min_votes and len(
+                options_obj) <= vote.max_votes):
             ctx['alert_head'] = "Invalid selection."
             ctx['alert_text'] = "Invalid number of options selected."
             return self.render_error_response(ctx)
@@ -1081,15 +1160,21 @@ class VoteView(View):
 
             if not filter:
                 ctx['alert_head'] = "No filter given."
-                ctx['alert_text'] = "This vote has not been configured properly."
+                ctx[
+                    'alert_text'] = "This vote has not been configured " \
+                                    "properly."
             elif not filter.matches(user_details):
                 ctx['alert_head'] = "Not eligible"
-                ctx['alert_text'] = "You are not eligible for this vote. Tough luck."
+                ctx[
+                    'alert_text'] = "You are not eligible for this vote. " \
+                                    "Tough luck."
 
         except UserProfile.DoesNotExist:
             ctx['alert_head'] = "User details invalid."
-            ctx['alert_text'] = "Your user details could not be retrieved from CampusNet. Please log out and try again later."
-
+            ctx[
+                'alert_text'] = "Your user details could not be retrieved " \
+                                "from CampusNet. Please log out and try " \
+                                "again later."
 
         if 'alert_head' in ctx:
             return self.render_error_response(ctx)
