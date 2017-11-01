@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 
 RESTRICTED_WORDS = [
     # MASTER
-    'djangoadmin', 'imprint', 'privacy', 'about', 'help', 'filters', 'login',
+    'admin', 'imprint', 'privacy', 'about', 'help', 'filters', 'login',
     'logout', 'settings',
 
     # filters
