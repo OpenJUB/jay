@@ -127,7 +127,7 @@ class Vote(models.Model):
             pasv.num_voters = voters.count()
             pasv.save()
 
-            voters.delete()
+            voters.all().delete()
 
         except PassiveVote.DoesNotExist:
             pass
