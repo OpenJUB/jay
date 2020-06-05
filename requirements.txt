@@ -1,5 +1,5 @@
 # Django itself
-Django==1.11.28
+Django==1.11.29
 
 # Additional Django Apps
 django-forms-bootstrap==3.0.1
