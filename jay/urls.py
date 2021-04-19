@@ -30,7 +30,7 @@ urlpatterns = [
     url(r'^$', home, name="home"),
 
     # django admin
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 
     # Static stuff
     url(r'^imprint/$', TemplateView.as_view(template_name="base/imprint.html"),
@@ -50,14 +50,14 @@ urlpatterns = [
 
     # Authentication
     url(r'^accounts/', include('jay.allauthurls.main'), name='login'),
-    url(r'^login/', auth_views.login, {'template_name': 'auth/login.html'}),
-    url(r'^logout/', auth_views.logout,
+    url(r'^login/', auth_views.auth_login, {'template_name': 'auth/login.html'}),
+    url(r'^logout/', auth_views.auth_logout,
         {'template_name': 'auth/logout.html', 'next_page': 'home'},
         name="logout"),
 
     # Sub-projects
-    url(r'^filters/', include(filters_urls, namespace='filters')),
+    url(r'^filters/', filters_urls),
 
-    url(r'^settings/', include(settings_urls, namespace='settings')),
-    url(r'^(?P<system_name>[\w-]+)/', include(votes_urls, namespace='votes')),
+    url(r'^settings/', settings_urls),
+    url(r'^(?P<system_name>[\w-]+)/', votes_urls),
 ]
