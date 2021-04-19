@@ -49,14 +49,15 @@ urlpatterns = [
         name="filter_help"),
 
     # Authentication
-    url(r'^login/', auth_views.login, {'template_name': 'auth/login.html'},
-        name="login"),
+    url(r'^accounts/', include('jay.allauthurls.main'), name='login'),
+    url(r'^login/', auth_views.login, {'template_name': 'auth/login.html'}),
     url(r'^logout/', auth_views.logout,
         {'template_name': 'auth/logout.html', 'next_page': 'home'},
         name="logout"),
 
     # Sub-projects
     url(r'^filters/', include(filters_urls, namespace='filters')),
+
     url(r'^settings/', include(settings_urls, namespace='settings')),
     url(r'^(?P<system_name>[\w-]+)/', include(votes_urls, namespace='votes')),
 ]

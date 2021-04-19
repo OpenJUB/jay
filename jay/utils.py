@@ -13,24 +13,48 @@ def memoize(f):
     return helper
 
 
+def is_superadmin(user):
+    """ Checks if a user is a superadmin. """
+    return user.is_superuser
+
+
+def is_elevated(user):
+    """ Checks if a user is an admin for some voting system """
+    if not user.is_superuser:
+        if not user.admin_set.count() > 0:
+            return False
+    return True
+
+
 def superadmin(handler):
-    """ Checks if a user is a super admin. """
+    """ Requires a user to be a superadmin. """
 
     def helper(request, *args, **kwargs):
-        if not request.user.profile.isSuperAdmin():
+        if not is_superadmin(request.user):
             raise PermissionDenied
         return handler(request, *args, **kwargs)
 
     return helper
 
 
-def priviliged(handler):
-    """ Checks that a user has elevated privileges. """
+def elevated(handler):
+    """ Requires a user to be elevated user """
 
     def helper(request, *args, **kwargs):
-        if not request.user.profile.isElevated():
+        if not is_elevated(request.user):
             raise PermissionDenied
 
         return handler(request, *args, **kwargs)
 
     return helper
+
+
+def get_user_details(user):
+    """ Gets a dict() object representing user data """
+
+    try:
+        data = user.socialaccount_set.get(provider="dreamjub").extra_data
+        return data
+    except:
+        # fallback to an in-active user with just a username flag
+        return {'username': user.username, 'active': False}

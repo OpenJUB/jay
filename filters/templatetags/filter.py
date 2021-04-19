@@ -1,5 +1,7 @@
 from django import template
-import filters.forest as forest
+from django.utils.safestring import mark_safe
+
+from filters.forest import logic, layouter, renderer
 import json
 
 register = template.Library()
@@ -11,16 +13,16 @@ def render_full(src, inp):
     obj = json.loads(inp)
 
     # parse the source code
-    tree = forest.parse(src)
+    tree = logic.parse(src)
 
     # make a layout with the given object
-    layout = forest.layouter(tree, obj)
+    layout = layouter.layouter(tree, obj)
 
     # and finally render it
-    render = forest.renderer(layout)
+    render = renderer.renderer(layout)
 
     # that is what we return
-    return render
+    return mark_safe(render)
 
 
 @register.simple_tag(takes_context=False)
@@ -31,4 +33,4 @@ def render_lbox(name, inp, out):
     inp = list(map(lambda x: x == '1', str(inp)))
     out = (out == '1')
 
-    return forest.renderer_box(box, inp, out)
+    return mark_safe(renderer.renderBox(box, inp, out))

@@ -1,0 +1,29 @@
+{% extends "base/base.html" %}
+
+{% load staticfiles %}
+
+{% block page_title %}Login Failure{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-sm-12">
+        <div class="jumbotron">
+            <h1>Login Failure</h1>
+            <p>
+                We are very sorry to say, but an unexpected error occured while trying to login.
+                Please tell the smart people the following details:
+
+               <b>Code: </b><span class="badge">{{ auth_error.code | safe }}</span><br />
+
+               <b>Error: </b>
+                <div class="well">
+                       {{ auth_error.exception | safe }}
+               </div>
+            </p>
+            <p><a class="btn btn-primary btn-lg" href="{% url "account_login" %}" role="button">Try again</a></p>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

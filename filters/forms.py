@@ -1,4 +1,5 @@
 from django import forms
+from filters.models import UserFilter
 
 
 class NewFilterForm(forms.Form):
@@ -13,6 +14,7 @@ class FilterTestUserForm(forms.Form):
     user = forms.CharField()
 
 
-class EditFilterForm(forms.Form):
-    name = forms.CharField(max_length=255)
-    value = forms.CharField(max_length=255)
+class UserFilterForm(forms.ModelForm):
+    class Meta:
+        model = UserFilter
+        fields = ('name', 'value',)
