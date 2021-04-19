@@ -50,7 +50,7 @@ urlpatterns = [
 
     # Authentication
     url(r'^accounts/', include('jay.allauthurls.main'), name='login'),
-    url(r'^login/', auth_views.auth_login, {'template_name': 'auth/login.html'}),
+    url(r'^login/', auth_views.LoginView.as_view(template_name='auth/login.html'), name='login'),
     url(r'^logout/', auth_views.LogoutView.as_view(template_name='auth/logout.html', next_page='home'),
         name="logout"),
 

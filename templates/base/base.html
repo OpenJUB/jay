@@ -73,7 +73,7 @@
                     <li role="presentation"><a href="/logout">Logout</a></li>
                   </ul>
                 {% else %}
-                  <a href="/accounts/dreamjub/login">Login</a>
+                  <a href="{% url 'google_login' %}">Login</a>
                 {% endif %}
               </li>
             </ul>

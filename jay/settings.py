@@ -34,7 +34,7 @@ INSTALLED_APPS = (
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    'dreamjub.providers.oauth',
+    'allauth.socialaccount.providers.google',
 
     'filters',
     'settings',
@@ -88,7 +88,7 @@ DREAMJUB_CLIENT_SECRET = 'EkeeT0GgOGOQRHbgFE4n1RERxVNSiOD1HZ80TRfERiWj3cK1hZ' \
 
 # Default after login redirect
 # These are named URL routes
-LOGIN_URL = "/accounts/dreamjub/login"
+LOGIN_URL = "/accounts/google/login"
 LOGOUT_URL = "/logout"
 LOGIN_REDIRECT_URL = "home"
 
