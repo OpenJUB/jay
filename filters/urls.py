@@ -4,6 +4,8 @@ from django.views.generic import TemplateView
 from filters.views import Forest, FilterNew, FilterTest, FilterTestUser, \
     FilterEdit, FilterDelete
 
+app_name = 'filters'
+
 urlpatterns = [
     url(r'^$', Forest, name="forest"),
     url(r'^new$', FilterNew, name="new"),

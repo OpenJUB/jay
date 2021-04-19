@@ -6,8 +6,8 @@ from django.contrib import admin
 
 # Create your models here.
 class Admin(models.Model):
-    user = models.ForeignKey(User)
-    system = models.ForeignKey("settings.VotingSystem")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    system = models.ForeignKey("settings.VotingSystem", on_delete=models.CASCADE)
 
     class Meta():
         unique_together = (("system", "user"))

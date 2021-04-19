@@ -14,7 +14,7 @@ from jay import utils
 
 # Create your models here.
 class UserFilter(models.Model):
-    system = models.ForeignKey(VotingSystem)
+    system = models.ForeignKey(VotingSystem, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
     tree = models.TextField(blank=True)

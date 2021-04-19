@@ -15,19 +15,19 @@ from jay.restricted import is_restricted_word
 
 # Create your models here.
 class Vote(models.Model):
-    system = models.ForeignKey(VotingSystem)
+    system = models.ForeignKey(VotingSystem, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=64)
     machine_name = models.SlugField(max_length=64)
 
     auto_open_options = models.BooleanField(default=False)
 
-    filter = models.ForeignKey(UserFilter, null=True)
-    status = models.OneToOneField('Status')
+    filter = models.ForeignKey(UserFilter, null=True, on_delete=models.SET_NULL)
+    status = models.OneToOneField('Status', on_delete=models.CASCADE)
 
     description = models.TextField(blank=True)
 
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
 
     min_votes = models.IntegerField()
     max_votes = models.IntegerField()
@@ -245,7 +245,7 @@ class Vote(models.Model):
 
 
 class Option(models.Model):
-    vote = models.ForeignKey(Vote)
+    vote = models.ForeignKey(Vote, on_delete=models.CASCADE)
 
     number = models.IntegerField()
 
@@ -297,16 +297,16 @@ class Status(models.Model):
 
 
 class ActiveVote(models.Model):
-    vote = models.ForeignKey(Vote)
+    vote = models.ForeignKey(Vote, on_delete=models.CASCADE)
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return u'%s voted for %s' % (self.user, self.vote)
 
 
 class PassiveVote(models.Model):
-    vote = models.OneToOneField(Vote)
+    vote = models.OneToOneField(Vote, on_delete=models.CASCADE)
 
     num_voters = models.IntegerField()
     num_eligible = models.IntegerField()

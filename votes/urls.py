@@ -4,6 +4,8 @@ from django.views.generic import TemplateView
 
 from votes.views import *
 
+app_name = 'votes'
+
 urlpatterns = [
     # Home for the votes
     url(r'^$', system_home, name="system"),

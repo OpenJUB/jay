@@ -3,6 +3,8 @@ from django.views.generic import TemplateView
 
 from settings.views import systems
 
+app_name = 'settings'
+
 urlpatterns = [
 
     # Superadmin management

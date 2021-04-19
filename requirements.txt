@@ -14,7 +14,7 @@ pre-js-py==1.1.0
 pep8 >= 1.7.0
 
 # For authing against dreamjub
-django-allauth==0.29.0
+django-allauth==0.44.0
 django-allauth-dreamjub==0.1.3
 
 # for counting users

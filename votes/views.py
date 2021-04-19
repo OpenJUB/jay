@@ -1,7 +1,7 @@
 import json
 import time
 
-from django.shortcuts import render, get_object_or_404, render_to_response, \
+from django.shortcuts import render, get_object_or_404, \
     redirect
 
 from django.utils import formats
@@ -14,7 +14,7 @@ from django.http import HttpResponse, Http404
 from django.views.generic import View
 
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -1117,7 +1117,7 @@ class VoteView(View):
                           status=403)
 
     def render_error_response(self, ctx):
-        return render_to_response(VOTE_ERROR_TEMPLATE, context=ctx)
+        return render(VOTE_ERROR_TEMPLATE, context=ctx)
 
     @method_decorator(login_required)
     def post(self, request, system_name, vote_name):
@@ -1214,4 +1214,4 @@ class VoteView(View):
         ctx['alert_head'] = "You voted!"
         ctx['alert_text'] = "Your votes have been counted."
 
-        return render_to_response(VOTE_ERROR_TEMPLATE, context=ctx)
+        return render(request, VOTE_ERROR_TEMPLATE, context=ctx)
