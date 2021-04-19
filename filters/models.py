@@ -69,7 +69,7 @@ class UserFilter(models.Model):
         return self.system.isAdmin(user)
 
     def get_absolute_url(self):
-        from django.core.urlresolvers import reverse
+        from django.urls import reverse
         return reverse('filters:edit', kwargs={'filter_id': self.id})
 
 
