@@ -51,8 +51,7 @@ urlpatterns = [
     # Authentication
     url(r'^accounts/', include('jay.allauthurls.main'), name='login'),
     url(r'^login/', auth_views.auth_login, {'template_name': 'auth/login.html'}),
-    url(r'^logout/', auth_views.auth_logout,
-        {'template_name': 'auth/logout.html', 'next_page': 'home'},
+    url(r'^logout/', auth_views.LogoutView.as_view(template_name='auth/logout.html', next_page='home'),
         name="logout"),
 
     # Sub-projects
