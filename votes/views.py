@@ -53,7 +53,7 @@ def system_home(request, system_name):
 
     all_votes = Vote.objects.filter(system=vs)
 
-    if request.user.is_authenticated() and vs.isAdmin(request.user):
+    if request.user.is_authenticated and vs.isAdmin(request.user):
         ctx['votes'] = all_votes
         ctx['results'] = Vote.objects.filter(system=vs,
                                              status__stage__in=[Status.PUBLIC,
@@ -1013,7 +1013,7 @@ def results(request, system_name, vote_name):
 
     if vote.status.stage != Status.PUBLIC:
         if vote.status.stage == Status.CLOSE and \
-                request.user.is_authenticated():
+                request.user.is_authenticated:
             if vote.system.isAdmin(request.user):
                 ctx['alert_type'] = 'info'
                 ctx['alert_head'] = 'Non-public'
