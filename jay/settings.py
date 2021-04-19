@@ -112,3 +112,9 @@ STATIC_URL = '/static/'
 SITE_ID = 1
 
 ACCOUNT_EMAIL_VERIFICATION = "none"
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'AUTH_PARAMS': {'hd': 'jacobs-alumni.de' }
+    }
+}
