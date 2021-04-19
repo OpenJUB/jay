@@ -14,7 +14,7 @@ def home(request):
     results = Vote.objects.filter(status__stage=Status.PUBLIC)
     systems = VotingSystem.objects.all()
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         details = get_user_details(request.user)
 
         votes_shown = [v for v in votes if v.filter.matches(details)]

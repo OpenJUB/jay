@@ -56,8 +56,8 @@ urlpatterns = [
         name="logout"),
 
     # Sub-projects
-    url(r'^filters/', filters_urls),
+    url(r'^filters/', include('filters.urls')),
 
-    url(r'^settings/', settings_urls),
-    url(r'^(?P<system_name>[\w-]+)/', votes_urls),
+    url(r'^settings/', include('settings.urls')),
+    url(r'^(?P<system_name>[\w-]+)/', include('votes.urls')),
 ]

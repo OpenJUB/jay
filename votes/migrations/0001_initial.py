@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
             name='ActiveVote',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', primary_key=True, serialize=False, auto_created=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -62,26 +62,26 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True)),
                 ('min_votes', models.IntegerField()),
                 ('max_votes', models.IntegerField()),
-                ('creator', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
-                ('filter', models.ForeignKey(null=True, to='filters.UserFilter')),
-                ('status', models.OneToOneField(to='votes.Status')),
-                ('system', models.ForeignKey(to='settings.VotingSystem')),
+                ('creator', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.SET_NULL)),
+                ('filter', models.ForeignKey(null=True, to='filters.UserFilter', on_delete=models.SET_NULL)),
+                ('status', models.OneToOneField(to='votes.Status', on_delete=models.CASCADE)),
+                ('system', models.ForeignKey(to='settings.VotingSystem', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='passivevote',
             name='vote',
-            field=models.OneToOneField(to='votes.Vote'),
+            field=models.OneToOneField(to='votes.Vote', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='option',
             name='vote',
-            field=models.ForeignKey(to='votes.Vote'),
+            field=models.ForeignKey(to='votes.Vote', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='activevote',
             name='vote',
-            field=models.ForeignKey(to='votes.Vote'),
+            field=models.ForeignKey(to='votes.Vote', on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='vote',

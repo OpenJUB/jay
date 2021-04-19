@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255)),
                 ('value', models.CharField(max_length=255)),
                 ('tree', models.TextField(blank=True)),
-                ('system', models.ForeignKey(to='settings.VotingSystem')),
+                ('system', models.ForeignKey(to='settings.VotingSystem', on_delete=models.CASCADE)),
             ],
         ),
     ]
