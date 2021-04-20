@@ -17,7 +17,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 
 from core.views import home
 
@@ -33,9 +33,8 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     # Static stuff
-    url(r'^imprint/$', TemplateView.as_view(template_name="base/imprint.html"),
-        name="imprint"),
-    url(r'^privacy/$', TemplateView.as_view(template_name="base/privacy.html"),
+    url(r'^imprint/$', RedirectView.as_view(url="https://jacobs-alumni.de/imprint"), name="imprint"),
+    url(r'^privacy/$', RedirectView.as_view(url="https://jacobs-alumni.de/privacy"),
         name="privacy"),
     url(r'^about/$',
         TemplateView.as_view(template_name="base/humblebrag.html"),
