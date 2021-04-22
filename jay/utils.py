@@ -53,7 +53,7 @@ def get_user_details(user):
     """ Gets a dict() object representing user data """
 
     try:
-        data = user.socialaccount_set.get(provider="dreamjub").extra_data
+        data = user.socialaccount_set.get(provider="google").extra_data
         return data
     except:
         # fallback to an in-active user with just a username flag

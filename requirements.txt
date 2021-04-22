@@ -19,3 +19,4 @@ django-allauth-dreamjub==0.1.3
 
 # for counting users
 requests-oauthlib==0.8.0
+google-api-python-client==2.2.0

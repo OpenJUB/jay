@@ -65,3 +65,6 @@ jay/prod_settings.py
 
 # Exclude IDEA IDE files
 .idea/
+
+# Service Account Keys
+jacobs-alumni-po-*.json

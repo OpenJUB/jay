@@ -8,7 +8,7 @@ from django.contrib import admin
 from settings.models import VotingSystem
 from filters.models import UserFilter
 
-from users.ojub_auth import get_all
+from users.enumerate import get_all
 
 from jay.restricted import is_restricted_word
 

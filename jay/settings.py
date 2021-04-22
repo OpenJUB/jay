@@ -118,3 +118,7 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {'hd': 'jacobs-alumni.de' }
     }
 }
+
+GSUITE_AUTH_FILE = os.environ.get("GSUITE_AUTH_FILE")
+GSUITE_ADMIN_USER = 'admin@jacobs-alumni.de'
+GSUITE_ORG_PATH = '/Approved Alumni'
