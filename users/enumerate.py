@@ -45,3 +45,14 @@ def get_all():
 
 
     return out
+
+def get_one(userKey):
+    service = make_directory_service()
+
+    users = service.users()
+    request = users.get(projection='basic', userKey=userKey)
+
+    user = request.execute()
+
+
+    return user
