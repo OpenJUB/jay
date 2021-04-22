@@ -11,4 +11,10 @@ def update_extra_data(request, sociallogin, **kwargs):
 
     id = sociallogin.account.extra_data['id']
     extra_user = enumerate.get_one(id)
+
     sociallogin.account.extra_data.update(extra_user)
+
+    # If the social account already exists, save the model again
+    if sociallogin.account.pk:
+        sociallogin.account.save()
+
