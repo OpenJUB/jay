@@ -1,0 +1,16 @@
+
+
+jay/local_settings.py
+jay/prod_settings.py
+
+# virtualenv
+.venv
+venv/
+ENV/
+env/
+
+# local dev files
+.vscode
+
+db.sqlite3
+*-po-*.json
